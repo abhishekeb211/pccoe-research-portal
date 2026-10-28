@@ -8,11 +8,11 @@ Live Deployment: **[https://abhishekeb211.github.io/pccoe-research-portal/](http
 
 ## 🌟 Highlights & Key Features
 
-- **979 Verified Research Publications** across 89 Computer Engineering faculty members (2025–Present).
+- **478 Verified Research Publications** across the official roster of **50 Computer Engineering Faculty Members + 1 Teaching Assistant (51 Total)** (2025–Present).
 - **Academic Cycle Filtering**:
-  - **Academic Year 2025–2026** (`July 2025 – June 2026`): 591 Papers (Institutional Accreditation Cycle).
-  - **Post-June 2026 Momentum** (`July – October 2026`): 123 Papers (Q1 Fresh Momentum).
-  - **Early 2025** (`Jan – June 2025`): 265 Papers.
+  - **Academic Year 2025–2026** (`July 2025 – June 2026`): 286 Papers (Official Institutional Accreditation Cycle).
+  - **Post-June 2026 Momentum** (`July – October 2026`): 60 Papers (Q1 Fresh Momentum).
+  - **Early 2025** (`Jan – June 2025`): 132 Papers.
 - **Multi-Source Indexing & Quality Stratification**:
   - Official Scopus Sources Coverage (`scopus.com/sources`)
   - SCImago Journal & Country Rank (SJR) Quartiles (Q1, Q2, Q3, Q4)
