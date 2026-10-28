@@ -46,25 +46,13 @@
 
     <!-- PERIOD SELECTOR PILLS -->
     <section class="period-selector-section" aria-label="Academic Period Filter">
-      <div class="period-title">Select Academic Accreditation Period</div>
-      <div class="period-pills-row" id="periodPillsContainer">
-        <button class="period-tab-btn" data-period="all">
-          <span>🌟 All Publications</span>
-          <span class="period-badge-count" id="countAll">180</span>
-        </button>
-        <button class="period-tab-btn active" data-period="ay2526">
-          <span>📅 AY 2025–2026 (July 2025 – June 2026)</span>
-          <span class="period-badge-count" id="countAY2526">115</span>
-        </button>
-        <button class="period-tab-btn" data-period="postjune26">
-          <span>🚀 Recent Momentum (July – October 2026)</span>
-          <span class="period-badge-count" id="countPostJune26">14</span>
-        </button>
-        <button class="period-tab-btn" data-period="prejuly25">
-          <span>🕒 Early 2025 (Jan – June 2025)</span>
-          <span class="period-badge-count" id="countPreJuly25">51</span>
-        </button>
-      </div>
+      <div class="period-title">Select year and semester</div>
+      <label class="period-year-label" for="periodYear">Year
+        <select id="periodYear" class="filter-select">
+          <option value="recent">Recent semesters</option>
+        </select>
+      </label>
+      <div class="period-pills-row" id="periodPillsContainer"></div>
     </section>
 
     <!-- LIVE KPI METRIC CARDS -->

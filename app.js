@@ -10,7 +10,7 @@ let filteredPublications = [];
 
 // Application State
 const state = {
-  activePeriod: 'ay2526', // default: AY 2025-2026 ('all', 'ay2526', 'postjune26', 'prejuly25')
+  activePeriod: latestSemesterId(),
   searchQuery: '',
   faculty: 'all',
   designation: 'all',
@@ -117,12 +117,37 @@ function tally(papers) {
   return addTotals(stats);
 }
 
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+function latestSemesterId(now = new Date()) {
+  const year = now.getFullYear();
+  return now.getMonth() >= 6 ? `jul-${year}` : `jan-${year}`;
+}
+
+function recentSemesterIds(now = new Date()) {
+  const current = latestSemesterId(now);
+  const [half, yearText] = current.split('-');
+  const year = Number(yearText);
+  const previous = half === 'jul' ? `jan-${year}` : `jul-${year - 1}`;
+  return [current, previous];
+}
+
+function semesterLabel(id) {
+  if (!id || id === 'all') return 'All publications';
+  const [half, year] = id.split('-');
+  return half === 'jul' ? `July–December ${year}` : `January–June ${year}`;
+}
+
+function paperSemesterId(paper) {
+  const month = MONTH_NAMES.indexOf(paper['Published Month']);
+  const year = parseInt(paper['Published Year'], 10);
+  if (month < 0 || !year) return '';
+  return month >= 6 ? `jul-${year}` : `jan-${year}`;
+}
+
 function matchesPeriod(paper) {
-  const tag = paper['Academic Period Tag'];
-  if (state.activePeriod === 'ay2526') return tag === 'July 2025 - June 2026 (AY 2025-26)';
-  if (state.activePeriod === 'postjune26') return tag === 'July 2026 - October 2026 (Post-June 2026)';
-  if (state.activePeriod === 'prejuly25') return tag === 'Jan 2025 - June 2025 (H2 Prev AY)';
-  return true;
+  if (state.activePeriod === 'all') return true;
+  return paperSemesterId(paper) === state.activePeriod;
 }
 
 function doiLabel(doi) {
@@ -243,38 +268,59 @@ function populateFacultyDropdown() {
 }
 
 function updatePeriodPillCounts() {
-  const counts = {
-    all: allPublications.length,
-    ay2526: allPublications.filter(p => p['Academic Period Tag'] === 'July 2025 - June 2026 (AY 2025-26)').length,
-    postjune26: allPublications.filter(p => p['Academic Period Tag'] === 'July 2026 - October 2026 (Post-June 2026)').length,
-    prejuly25: allPublications.filter(p => p['Academic Period Tag'] === 'Jan 2025 - June 2025 (H2 Prev AY)').length
-  };
-
-  const countAllEl = document.getElementById('countAll');
-  if (countAllEl) countAllEl.textContent = counts.all;
-  const countAY2526El = document.getElementById('countAY2526');
-  if (countAY2526El) countAY2526El.textContent = counts.ay2526;
-  const countPostJune26El = document.getElementById('countPostJune26');
-  if (countPostJune26El) countPostJune26El.textContent = counts.postjune26;
-  const countPreJuly25El = document.getElementById('countPreJuly25');
-  if (countPreJuly25El) countPreJuly25El.textContent = counts.prejuly25;
-
   const indexAll = document.querySelector('#filterIndexSource option[value="all"]');
-  if (indexAll) indexAll.textContent = `Index Source: All (${counts.all})`;
+  if (indexAll) indexAll.textContent = `Index Source: All (${allPublications.length})`;
+  renderPeriodControls();
+}
+
+function renderPeriodControls() {
+  const select = document.getElementById('periodYear');
+  const years = [...new Set(allPublications.map((paper) => String(paper['Published Year'] || '')).filter((year) => /^\d{4}$/.test(year)))]
+    .sort((a, b) => Number(b) - Number(a));
+  if (select && select.options.length <= 1) {
+    select.innerHTML = `<option value="recent">Recent semesters</option>${years.map((year) => `<option value="${year}">${year}</option>`).join('')}`;
+  }
+  const chosen = select ? select.value : 'recent';
+  const ids = chosen && chosen !== 'recent' ? [`jul-${chosen}`, `jan-${chosen}`] : recentSemesterIds();
+  const counts = {};
+  allPublications.forEach((paper) => {
+    const id = paperSemesterId(paper);
+    if (id) counts[id] = (counts[id] || 0) + 1;
+  });
+  const container = document.getElementById('periodPillsContainer');
+  if (!container) return;
+  const buttons = [
+    { id: 'all', label: 'All publications', count: allPublications.length },
+    ...ids.map((id) => ({ id, label: semesterLabel(id), count: counts[id] || 0 }))
+  ];
+  container.innerHTML = buttons.map((button) => `
+    <button type="button" class="period-tab-btn${state.activePeriod === button.id ? ' active' : ''}" data-period="${button.id}">
+      <span>${button.label}</span>
+      <span class="period-badge-count">${button.count}</span>
+    </button>
+  `).join('');
 }
 
 function setupEventListeners() {
-  // Period Switcher Pills
-  document.querySelectorAll('.period-tab-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      document.querySelectorAll('.period-tab-btn').forEach(b => b.classList.remove('active'));
-      const target = e.currentTarget;
-      target.classList.add('active');
+  const periodHost = document.getElementById('periodPillsContainer');
+  if (periodHost) {
+    periodHost.addEventListener('click', (event) => {
+      const target = event.target.closest('[data-period]');
+      if (!target) return;
       state.activePeriod = target.getAttribute('data-period');
       state.currentPage = 1;
       applyFilters();
     });
-  });
+  }
+  const yearSelect = document.getElementById('periodYear');
+  if (yearSelect) {
+    yearSelect.addEventListener('change', () => {
+      const year = yearSelect.value;
+      state.activePeriod = year === 'recent' ? latestSemesterId() : `jul-${year}`;
+      state.currentPage = 1;
+      applyFilters();
+    });
+  }
 
   // Search Input with Debounce
   let searchTimeout = null;
@@ -493,6 +539,7 @@ function applyFilters() {
   renderCharts();
   renderFacultyAnalytics();
   renderActiveFilters();
+  renderPeriodControls();
 
   // Render view
   if (state.viewMode === 'directory') {
@@ -876,9 +923,12 @@ function syncControls() {
   setSelect('filterScopus', state.scopusStatus);
   setSelect('filterIndexSource', state.indexSource);
   setSelect('filterSort', state.sortBy);
-  document.querySelectorAll('.period-tab-btn').forEach((button) => {
-    button.classList.toggle('active', button.getAttribute('data-period') === state.activePeriod);
-  });
+  const yearSelect = document.getElementById('periodYear');
+  if (yearSelect) {
+    const recent = recentSemesterIds();
+    yearSelect.value = state.activePeriod === 'all' || recent.includes(state.activePeriod) ? 'recent' : state.activePeriod.split('-')[1];
+  }
+  renderPeriodControls();
   document.querySelectorAll('[data-leaderboard]').forEach((button) => {
     button.classList.toggle('active', Number(button.getAttribute('data-leaderboard')) === state.leaderboardLimit);
   });
@@ -896,7 +946,7 @@ function resetAll() {
   state.indexSource = 'all';
   state.sortBy = 'date-desc';
   state.bucket = 'all';
-  state.activePeriod = 'ay2526';
+  state.activePeriod = latestSemesterId();
   state.analyticsSortKey = 'total';
   state.analyticsSortDir = 'desc';
   state.leaderboardLimit = 10;
@@ -919,13 +969,6 @@ function clearFilter(key) {
   applyFilters();
 }
 
-const PERIOD_LABELS = {
-  all: 'All publications',
-  ay2526: 'AY 2025–26',
-  postjune26: 'July–October 2026',
-  prejuly25: 'Jan–June 2025'
-};
-
 function renderActiveFilters() {
   const host = document.getElementById('activeFilters');
   if (!host) return;
@@ -933,7 +976,7 @@ function renderActiveFilters() {
   const add = (key, label) => {
     chips.push(`<button type="button" class="filter-chip" data-clear-filter="${esc(key)}">${esc(label)} <span aria-hidden="true">&times;</span></button>`);
   };
-  if (state.activePeriod !== 'all') add('period', PERIOD_LABELS[state.activePeriod] || state.activePeriod);
+  if (state.activePeriod !== 'all') add('period', semesterLabel(state.activePeriod));
   if (state.searchQuery) add('search', `Search: ${state.searchQuery}`);
   if (state.faculty !== 'all') add('faculty', `Faculty: ${state.faculty}`);
   if (state.designation !== 'all') add('designation', `Designation: ${state.designation}`);
