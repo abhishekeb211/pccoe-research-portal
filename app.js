@@ -27,6 +27,7 @@ const state = {
   profileSection: 'all',
   analyticsSortKey: 'total',
   analyticsSortDir: 'desc',
+  leaderboardLimit: 10,
   currentPage: 1,
   pageSize: 24
 };
@@ -260,11 +261,6 @@ function updatePeriodPillCounts() {
 
   const indexAll = document.querySelector('#filterIndexSource option[value="all"]');
   if (indexAll) indexAll.textContent = `Index Source: All (${counts.all})`;
-
-  const kpiAYEl = document.getElementById('kpiAY2526');
-  if (kpiAYEl) kpiAYEl.textContent = counts.ay2526;
-  const kpiPostEl = document.getElementById('kpiPostJune26');
-  if (kpiPostEl) kpiPostEl.textContent = counts.postjune26;
 }
 
 function setupEventListeners() {
@@ -316,36 +312,8 @@ function setupEventListeners() {
   bindSelect('filterIndexSource', 'indexSource');
   bindSelect('filterSort', 'sortBy');
 
-  // Reset Filters
   const resetBtn = document.getElementById('resetFiltersBtn');
-  if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      state.searchQuery = '';
-      state.faculty = 'all';
-      state.designation = 'all';
-      state.quartile = 'all';
-      state.position = 'all';
-      state.domain = 'all';
-      state.medium = 'all';
-      state.scopusStatus = 'all';
-      state.indexSource = 'all';
-      state.sortBy = 'date-desc';
-      state.currentPage = 1;
-
-      if (document.getElementById('searchInput')) document.getElementById('searchInput').value = '';
-      if (document.getElementById('filterFaculty')) document.getElementById('filterFaculty').value = 'all';
-      if (document.getElementById('filterDesignation')) document.getElementById('filterDesignation').value = 'all';
-      if (document.getElementById('filterQuartile')) document.getElementById('filterQuartile').value = 'all';
-      if (document.getElementById('filterPosition')) document.getElementById('filterPosition').value = 'all';
-      if (document.getElementById('filterDomain')) document.getElementById('filterDomain').value = 'all';
-      if (document.getElementById('filterMedium')) document.getElementById('filterMedium').value = 'all';
-      if (document.getElementById('filterScopus')) document.getElementById('filterScopus').value = 'all';
-      if (document.getElementById('filterIndexSource')) document.getElementById('filterIndexSource').value = 'all';
-      if (document.getElementById('filterSort')) document.getElementById('filterSort').value = 'date-desc';
-
-      applyFilters();
-    });
-  }
+  if (resetBtn) resetBtn.addEventListener('click', resetAll);
 
   // View Toggles (Cards vs Table vs Directory)
   const cardsBtn = document.getElementById('viewCardsBtn');
@@ -444,11 +412,8 @@ function applyFilters() {
       }
     }
 
-    // 4. Designation
-    if (state.designation !== 'all') {
-      const des = (p['Faculty Designation'] || '');
-      if (!des.toLowerCase().includes(state.designation.toLowerCase())) return false;
-    }
+    // 4. Designation uses the same buckets as the designation chart.
+    if (state.designation !== 'all' && designationBucket(p) !== state.designation) return false;
 
     // 5. Quartile
     if (state.quartile !== 'all') {
@@ -484,7 +449,7 @@ function applyFilters() {
       if (state.scopusStatus === 'Scopus Indexed' && !scopusConfirmed(p)) return false;
       if (state.scopusStatus === 'Proceeding Unconfirmed' && !sc.includes('unconfirmed') && !sc.includes('indexing unconfirmed')) return false;
       if (state.scopusStatus === 'Preprint' && !sc.includes('preprint')) return false;
-      if (state.scopusStatus === 'Not Indexed' && !sc.includes('not indexed') && !sc.includes('unindexed')) return false;
+      if (state.scopusStatus === 'Not Indexed' && (scopusConfirmed(p) || sc.includes('unconfirmed'))) return false;
     }
 
     // 10. Indexing source: SCImago-confirmed Scopus, or the faculty member's own Scholar profile.
@@ -493,6 +458,8 @@ function applyFilters() {
       if (state.indexSource === 'scopus' && !scopusConfirmed(p)) return false;
       if (state.indexSource === 'scholar' && !evidence.includes('SCHOLAR_PROFILE')) return false;
     }
+
+    if (state.bucket !== 'all' && paperBucket(p) !== state.bucket) return false;
 
     return true;
   });
@@ -525,6 +492,7 @@ function applyFilters() {
   // Update 5 Interactive Charts
   renderCharts();
   renderFacultyAnalytics();
+  renderActiveFilters();
 
   // Render view
   if (state.viewMode === 'directory') {
@@ -537,28 +505,27 @@ function applyFilters() {
   }
 }
 
+function denominatorText() {
+  return `of ${allPublications.length} identity-checked`;
+}
+
 function updateDashboardKpis() {
-  const filteredEl = document.getElementById('kpiFilteredTotal');
-  if (filteredEl) filteredEl.textContent = filteredPublications.length;
-
-  const scopeSubEl = document.getElementById('kpiScopeSubtitle');
-  if (scopeSubEl) {
-    const labels = {
-      all: 'Identity-checked publications',
-      ay2526: 'Papers in AY 2025–2026',
-      postjune26: 'Post-June 2026 Momentum',
-      prejuly25: 'Pre-July 2025 Output'
-    };
-    scopeSubEl.textContent = labels[state.activePeriod] || 'Matching Active Filters';
-  }
-
-  const scopeStats = tally(filteredPublications);
-  const kpiQ1Q2El = document.getElementById('kpiQ1Q2');
-  if (kpiQ1Q2El) kpiQ1Q2El.textContent = scopeStats.q1 + scopeStats.q2;
-
+  const stats = tally(filteredPublications);
   const confirmed = filteredPublications.filter(scopusConfirmed).length;
-  const kpiIndexingEl = document.getElementById('kpiIndexingStatus');
-  if (kpiIndexingEl) kpiIndexingEl.textContent = String(confirmed);
+  const denom = denominatorText();
+  const setNumber = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = String(value);
+  };
+  setNumber('kpiFilteredTotal', filteredPublications.length);
+  setNumber('kpiJournals', stats.journals);
+  setNumber('kpiConferences', stats.conferences);
+  setNumber('kpiQ1Q2', stats.q1 + stats.q2);
+  setNumber('kpiIndexingStatus', confirmed);
+  ['kpiScopeSubtitle', 'kpiJournalsSubtitle', 'kpiConferencesSubtitle', 'kpiQ1Q2Subtitle', 'kpiIndexingSubtitle'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = denom;
+  });
 
   const showingCountEl = document.getElementById('showingCount');
   if (showingCountEl) showingCountEl.textContent = Math.min(filteredPublications.length, state.pageSize);
@@ -567,8 +534,7 @@ function updateDashboardKpis() {
 }
 
 function listedPapers() {
-  if (state.bucket === 'all') return filteredPublications;
-  return filteredPublications.filter((paper) => paperBucket(paper) === state.bucket);
+  return filteredPublications;
 }
 
 function renderPublications() {
@@ -643,7 +609,7 @@ function renderTableView(items) {
 function renderFacultyDirectory() {
   const container = document.getElementById('facultyDirectoryContainer');
   if (!container) return;
-  const stats = statsByFaculty(periodPublications);
+  const stats = statsByFaculty(filteredPublications);
   const placeholder = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="%23CBD5E1"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
 
   container.innerHTML = sortedFacultyRows(stats).map((row) => {
@@ -718,210 +684,527 @@ window.changePage = function(page) {
   window.scrollTo({ top: document.querySelector('.controls-bar').offsetTop - 80, behavior: 'smooth' });
 };
 
-function renderCharts() {
-  const bucketStats = tally(filteredPublications);
-  const canvasQ = document.getElementById('quartileChart');
-  if (canvasQ) {
-    const ctxQ = canvasQ.getContext('2d');
-    if (quartileChartInstance) quartileChartInstance.destroy();
+const DESIGNATION_BUCKETS = [
+  'Professor & HOD',
+  'Professor',
+  'Associate Professor',
+  'Assistant Professor',
+  'Teaching Assistant',
+  'Other'
+];
 
-    quartileChartInstance = new Chart(ctxQ, {
-      type: 'bar',
-      data: {
-        labels: BUCKETS.map((bucket) => bucket.label),
-        datasets: [{
-          label: 'Publications',
-          data: BUCKETS.map((bucket) => bucketStats[bucket.id]),
-          backgroundColor: ['#137333', '#1A73E8', '#B06000', '#7627BB', '#64748B', '#004D40', '#0D47A1', '#D9381E'],
-          borderWidth: 0,
-          borderRadius: 4
-        }]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { beginAtZero: true, grid: { color: '#F1F5F9' }, ticks: { precision: 0 } },
-          y: { grid: { display: false }, ticks: { font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 } } }
+const SCOPUS_SERIES = [
+  { id: 'Scopus Indexed', label: 'SCImago-confirmed', color: '#137333' },
+  { id: 'Proceeding Unconfirmed', label: 'Unconfirmed', color: '#B06000' },
+  { id: 'Not Indexed', label: 'Not indexed', color: '#64748B' }
+];
+
+let cumulativeChartInstance = null;
+let scopusChartInstance = null;
+let citedChartInstance = null;
+
+const valueLabelPlugin = {
+  id: 'valueLabels',
+  afterDatasetsDraw(chart) {
+    const { ctx } = chart;
+    const type = chart.config.type;
+    ctx.save();
+    ctx.fillStyle = '#1E293B';
+    ctx.font = '600 11px "Plus Jakarta Sans", sans-serif';
+    chart.data.datasets.forEach((dataset, datasetIndex) => {
+      const meta = chart.getDatasetMeta(datasetIndex);
+      if (meta.hidden) return;
+      const total = dataset.data.reduce((sum, value) => sum + Number(value || 0), 0);
+      meta.data.forEach((element, index) => {
+        const value = Number(dataset.data[index] || 0);
+        if (!value) return;
+        if ((type === 'doughnut' || type === 'pie') && total && value / total < 0.04) return;
+        const pos = element.tooltipPosition();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        if (chart.options.indexAxis === 'y') {
+          ctx.textAlign = 'left';
+          ctx.fillText(String(value), pos.x + 6, pos.y);
+        } else if (type === 'doughnut' || type === 'pie') {
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillText(String(value), pos.x, pos.y);
+          ctx.fillStyle = '#1E293B';
+        } else {
+          ctx.fillText(String(value), pos.x, pos.y - 10);
         }
-      }
+      });
     });
+    ctx.restore();
   }
+};
 
-  // Chart 2: Monthly Publication Velocity
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  const monthData2025 = new Array(12).fill(0);
-  const monthData2026 = new Array(12).fill(0);
+function designationBucket(record) {
+  const text = record['Faculty Designation'] || '';
+  if (/hod/i.test(text)) return 'Professor & HOD';
+  if (/associate/i.test(text)) return 'Associate Professor';
+  if (/teaching/i.test(text)) return 'Teaching Assistant';
+  if (/assistant/i.test(text)) return 'Assistant Professor';
+  if (/professor/i.test(text)) return 'Professor';
+  return 'Other';
+}
 
-  filteredPublications.forEach(p => {
-    const mIdx = months.indexOf(p['Published Month']);
-    const yr = String(p['Published Year']);
-    if (mIdx >= 0) {
-      if (yr === '2025') monthData2025[mIdx]++;
-      else if (yr === '2026') monthData2026[mIdx]++;
+function coverageBucket(record) {
+  const bucket = paperBucket(record);
+  const group = bucket === 'book_chapter'
+    ? 'Book chapters'
+    : (bucket === 'scopus_conference' || bucket === 'non_scopus_conference' ? 'Conferences' : 'Journals');
+  const status = String(record['Scopus Indexing Status'] || '').toLowerCase();
+  let series = 'Not Indexed';
+  if (scopusConfirmed(record)) series = 'Scopus Indexed';
+  else if (status.includes('unconfirmed')) series = 'Proceeding Unconfirmed';
+  return { group, series };
+}
+
+function hexToRgba(hex, alpha) {
+  const value = hex.replace('#', '');
+  const num = parseInt(value, 16);
+  return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
+}
+
+function fadeColors(colors, activeIndex) {
+  if (activeIndex == null || activeIndex < 0) return colors;
+  return colors.map((color, index) => (index === activeIndex ? color : hexToRgba(color, 0.35)));
+}
+
+function legendWithCounts() {
+  return {
+    position: 'bottom',
+    labels: {
+      boxWidth: 12,
+      font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 },
+      generateLabels(chart) {
+        const labels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+        return labels.map((item) => {
+          const dataset = chart.data.datasets[item.datasetIndex];
+          if (!dataset) return item;
+          const count = chart.data.datasets.length === 1
+            ? dataset.data[item.index]
+            : dataset.data.reduce((sum, value) => sum + Number(value || 0), 0);
+          if (count != null && count !== '') item.text = `${item.text} (${count})`;
+          return item;
+        });
+      }
+    }
+  };
+}
+
+function tooltipWithShare(total) {
+  return {
+    callbacks: {
+      label(ctx) {
+        const raw = ctx.raw;
+        const value = typeof raw === 'number' ? raw : Number(raw?.y ?? raw?.x ?? 0);
+        const pct = total ? ((value / total) * 100).toFixed(1) : '0.0';
+        const series = ctx.dataset && ctx.chart.data.datasets.length > 1 ? `${ctx.dataset.label} — ` : '';
+        return `${series}${ctx.label}: ${value} (${pct}% of ${total})`;
+      }
+    }
+  };
+}
+
+function axisTitle(text) {
+  return { display: true, text, font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '600' } };
+}
+
+function mountChart(canvasId, config, emptyText) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return null;
+  const holder = canvas.parentElement;
+  let empty = holder.parentElement.querySelector('.chart-empty');
+  if (!empty) {
+    empty = document.createElement('p');
+    empty.className = 'chart-empty';
+    holder.parentElement.appendChild(empty);
+  }
+  empty.textContent = emptyText || 'No publications match the current filters.';
+  const hasData = config !== null;
+  holder.hidden = !hasData;
+  empty.hidden = hasData;
+  const previous = mountChart.instances[canvasId];
+  if (previous) previous.destroy();
+  if (!hasData) {
+    mountChart.instances[canvasId] = null;
+    return null;
+  }
+  if (!Chart.registry.plugins.get('valueLabels')) Chart.register(valueLabelPlugin);
+  mountChart.instances[canvasId] = new Chart(canvas.getContext('2d'), config);
+  return mountChart.instances[canvasId];
+}
+mountChart.instances = {
+  quartileChart: null,
+  monthlyChart: null,
+  designationChart: null,
+  domainChart: null,
+  leaderboardChart: null,
+  cumulativeChart: null,
+  scopusChart: null,
+  citedChart: null
+};
+
+function toggleFilter(prop, value) {
+  state[prop] = state[prop] === value ? 'all' : value;
+  state.currentPage = 1;
+  syncControls();
+  applyFilters();
+}
+
+function syncControls() {
+  const setSelect = (id, value) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (![...el.options].some((option) => option.value === value)) {
+      const extra = document.createElement('option');
+      extra.value = value;
+      extra.textContent = value;
+      el.appendChild(extra);
+    }
+    el.value = value;
+  };
+  const search = document.getElementById('searchInput');
+  if (search) search.value = state.searchQuery;
+  setSelect('filterFaculty', state.faculty);
+  setSelect('filterDesignation', state.designation);
+  setSelect('filterQuartile', state.quartile);
+  setSelect('filterPosition', state.position);
+  setSelect('filterDomain', state.domain);
+  setSelect('filterMedium', state.medium);
+  setSelect('filterScopus', state.scopusStatus);
+  setSelect('filterIndexSource', state.indexSource);
+  setSelect('filterSort', state.sortBy);
+  document.querySelectorAll('.period-tab-btn').forEach((button) => {
+    button.classList.toggle('active', button.getAttribute('data-period') === state.activePeriod);
+  });
+  document.querySelectorAll('[data-leaderboard]').forEach((button) => {
+    button.classList.toggle('active', Number(button.getAttribute('data-leaderboard')) === state.leaderboardLimit);
+  });
+}
+
+function resetAll() {
+  state.searchQuery = '';
+  state.faculty = 'all';
+  state.designation = 'all';
+  state.quartile = 'all';
+  state.position = 'all';
+  state.domain = 'all';
+  state.medium = 'all';
+  state.scopusStatus = 'all';
+  state.indexSource = 'all';
+  state.sortBy = 'date-desc';
+  state.bucket = 'all';
+  state.activePeriod = 'ay2526';
+  state.analyticsSortKey = 'total';
+  state.analyticsSortDir = 'desc';
+  state.leaderboardLimit = 10;
+  state.profileSection = 'all';
+  state.currentPage = 1;
+  state.profileFaculty = null;
+  if (location.hash) history.pushState(null, '', location.pathname + location.search);
+  syncControls();
+  setViewMode('cards');
+  applyFilters();
+}
+
+function clearFilter(key) {
+  if (key === 'period') state.activePeriod = 'all';
+  else if (key === 'search') state.searchQuery = '';
+  else if (key === 'bucket') state.bucket = 'all';
+  else state[key] = 'all';
+  state.currentPage = 1;
+  syncControls();
+  applyFilters();
+}
+
+const PERIOD_LABELS = {
+  all: 'All publications',
+  ay2526: 'AY 2025–26',
+  postjune26: 'July–October 2026',
+  prejuly25: 'Jan–June 2025'
+};
+
+function renderActiveFilters() {
+  const host = document.getElementById('activeFilters');
+  if (!host) return;
+  const chips = [];
+  const add = (key, label) => {
+    chips.push(`<button type="button" class="filter-chip" data-clear-filter="${esc(key)}">${esc(label)} <span aria-hidden="true">&times;</span></button>`);
+  };
+  if (state.activePeriod !== 'all') add('period', PERIOD_LABELS[state.activePeriod] || state.activePeriod);
+  if (state.searchQuery) add('search', `Search: ${state.searchQuery}`);
+  if (state.faculty !== 'all') add('faculty', `Faculty: ${state.faculty}`);
+  if (state.designation !== 'all') add('designation', `Designation: ${state.designation}`);
+  if (state.quartile !== 'all') add('quartile', `Quartile: ${state.quartile}`);
+  if (state.position !== 'all') add('position', `Position: ${state.position}`);
+  if (state.domain !== 'all') add('domain', `Domain: ${state.domain}`);
+  if (state.medium !== 'all') add('medium', `Medium: ${state.medium}`);
+  if (state.scopusStatus !== 'all') add('scopusStatus', `Scopus: ${state.scopusStatus}`);
+  if (state.indexSource !== 'all') add('indexSource', `Index: ${state.indexSource}`);
+  if (state.bucket !== 'all') {
+    const bucket = BUCKETS.find((item) => item.id === state.bucket);
+    add('bucket', bucket ? bucket.label : state.bucket);
+  }
+  const summary = chips.length
+    ? `Showing ${filteredPublications.length} of ${allPublications.length} publications.`
+    : `No filters applied. Showing all ${allPublications.length}.`;
+  host.innerHTML = `<p class="active-filters-summary">${summary}</p>${chips.length ? `<div class="active-filters-chips">${chips.join('')}</div>` : ''}`;
+}
+
+function renderCharts() {
+  const papers = filteredPublications;
+  const total = papers.length;
+  const font = { family: "'Plus Jakarta Sans', sans-serif", size: 11 };
+  const baseScales = (xTitle, yTitle, horizontal) => ({
+    x: {
+      beginAtZero: true,
+      title: axisTitle(horizontal ? xTitle : xTitle),
+      grid: { color: horizontal ? '#F1F5F9' : 'transparent' },
+      ticks: { precision: 0, font }
+    },
+    y: {
+      beginAtZero: !horizontal,
+      title: axisTitle(yTitle),
+      grid: { display: !horizontal, color: '#F1F5F9' },
+      ticks: { font }
     }
   });
 
-  const canvasM = document.getElementById('monthlyChart');
-  if (canvasM) {
-    const ctxM = canvasM.getContext('2d');
-    if (monthlyChartInstance) monthlyChartInstance.destroy();
-
-    monthlyChartInstance = new Chart(ctxM, {
-      type: 'bar',
-      data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        datasets: [
-          { label: '2025 Output', data: monthData2025, backgroundColor: '#81E6D9' },
-          { label: '2026 Output', data: monthData2026, backgroundColor: '#90CDF4' }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'top', labels: { boxWidth: 10, font: { family: "'Plus Jakarta Sans', sans-serif", size: 10 } } }
-        },
-        scales: {
-          x: { grid: { display: false } },
-          y: { beginAtZero: true, grid: { color: '#F1F5F9' } }
-        }
-      }
-    });
+  if (!total) {
+    ['quartileChart', 'monthlyChart', 'designationChart', 'domainChart', 'leaderboardChart', 'cumulativeChart', 'scopusChart', 'citedChart']
+      .forEach((id) => mountChart(id, null));
+    return;
   }
 
-  // Chart 3: Research by Faculty Designation
-  const desigCounts = {
-    'Prof & HOD': 0,
-    'Professor': 0,
-    'Assoc. Prof': 0,
-    'Asst. Prof': 0,
-    'Teaching Asst': 0
-  };
-
-  filteredPublications.forEach(p => {
-    const d = p['Faculty Designation'] || '';
-    if (d.includes('HOD')) desigCounts['Prof & HOD']++;
-    else if (d === 'Professor') desigCounts['Professor']++;
-    else if (d.includes('Associate')) desigCounts['Assoc. Prof']++;
-    else if (d.includes('Assistant')) desigCounts['Asst. Prof']++;
-    else if (d.includes('Teaching')) desigCounts['Teaching Asst']++;
-    else desigCounts['Asst. Prof']++;
+  const bucketStats = tally(papers);
+  const bucketColors = ['#137333', '#1A73E8', '#B06000', '#7627BB', '#64748B', '#004D40', '#0D47A1', '#D9381E'];
+  const bucketActive = BUCKETS.findIndex((bucket) => bucket.id === state.bucket);
+  mountChart('quartileChart', {
+    type: 'bar',
+    data: {
+      labels: BUCKETS.map((bucket) => bucket.label),
+      datasets: [{
+        label: 'Publications',
+        data: BUCKETS.map((bucket) => bucketStats[bucket.id]),
+        backgroundColor: fadeColors(bucketColors, bucketActive),
+        borderWidth: 0,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      onClick: (_evt, elements) => { if (elements.length) toggleFilter('bucket', BUCKETS[elements[0].index].id); },
+      plugins: { legend: legendWithCounts(), tooltip: tooltipWithShare(total) },
+      scales: baseScales('Publications', 'Type', true)
+    }
   });
 
-  const canvasDesig = document.getElementById('designationChart');
-  if (canvasDesig) {
-    const ctxDesig = canvasDesig.getContext('2d');
-    if (designationChartInstance) designationChartInstance.destroy();
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const years = [...new Set(papers.map((paper) => String(paper['Published Year'] || '')).filter(Boolean))].sort();
+  const yearColors = ['#81E6D9', '#90CDF4', '#FBD38D', '#D6BCFA', '#FEB2B2'];
+  mountChart('monthlyChart', {
+    type: 'bar',
+    data: {
+      labels: shortMonths,
+      datasets: years.map((year, index) => ({
+        label: year,
+        data: monthNames.map((month) => papers.filter((paper) => paper['Published Month'] === month && String(paper['Published Year']) === year).length),
+        backgroundColor: yearColors[index % yearColors.length],
+        borderRadius: 4
+      }))
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: legendWithCounts(), tooltip: tooltipWithShare(total) },
+      scales: baseScales('Month', 'Publications', false)
+    }
+  });
 
-    designationChartInstance = new Chart(ctxDesig, {
-      type: 'bar',
-      data: {
-        labels: Object.keys(desigCounts),
-        datasets: [{
-          label: 'Publications',
-          data: Object.values(desigCounts),
-          backgroundColor: ['#9AE6B4', '#90CDF4', '#FBD38D', '#BEE3F8', '#E2E8F0'],
-          borderWidth: 0,
-          borderRadius: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          x: { grid: { display: false } },
-          y: { beginAtZero: true, grid: { color: '#F1F5F9' } }
-        }
-      }
-    });
-  }
+  const designationCounts = DESIGNATION_BUCKETS.map((label) => papers.filter((paper) => designationBucket(paper) === label).length);
+  const designationActive = DESIGNATION_BUCKETS.indexOf(state.designation);
+  const designationColors = ['#9AE6B4', '#90CDF4', '#FBD38D', '#BEE3F8', '#D6BCFA', '#E2E8F0'];
+  mountChart('designationChart', {
+    type: 'bar',
+    data: {
+      labels: DESIGNATION_BUCKETS,
+      datasets: [{
+        label: 'Publications',
+        data: designationCounts,
+        backgroundColor: fadeColors(designationColors, designationActive),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      onClick: (_evt, elements) => { if (elements.length) toggleFilter('designation', DESIGNATION_BUCKETS[elements[0].index]); },
+      plugins: { legend: legendWithCounts(), tooltip: tooltipWithShare(total) },
+      scales: baseScales('Designation', 'Publications', false)
+    }
+  });
 
-  // Chart 4: Subject Domain Classification
   const domainCounts = {};
-  filteredPublications.forEach(p => {
-    const dom = p['Subject Domain Category'] || 'Other / Applied Computing';
-    domainCounts[dom] = (domainCounts[dom] || 0) + 1;
+  papers.forEach((paper) => {
+    const domain = paper['Subject Domain Category'] || 'Other / Applied Computing';
+    domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+  });
+  const domainLabels = Object.keys(domainCounts);
+  const domainPalette = ['#90CDF4', '#81E6D9', '#FBD38D', '#BEE3F8', '#FEB2B2', '#D6BCFA', '#E2E8F0', '#F6E05E'];
+  const domainColors = domainLabels.map((_, index) => domainPalette[index % domainPalette.length]);
+  const domainActive = domainLabels.indexOf(state.domain);
+  mountChart('domainChart', {
+    type: 'doughnut',
+    data: {
+      labels: domainLabels,
+      datasets: [{
+        label: 'Publications',
+        data: domainLabels.map((label) => domainCounts[label]),
+        backgroundColor: fadeColors(domainColors, domainActive),
+        borderColor: '#FFFFFF',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      onClick: (_evt, elements) => { if (elements.length) toggleFilter('domain', domainLabels[elements[0].index]); },
+      plugins: { legend: legendWithCounts(), tooltip: tooltipWithShare(total) }
+    }
   });
 
-  const domainLabels = Object.keys(domainCounts);
-  const domainData = Object.values(domainCounts);
-  const pastelDomainPalette = ['#90CDF4', '#81E6D9', '#FBD38D', '#BEE3F8', '#FEB2B2', '#D6BCFA', '#E2E8F0'];
-
-  const canvasDom = document.getElementById('domainChart');
-  if (canvasDom) {
-    const ctxDom = canvasDom.getContext('2d');
-    if (domainChartInstance) domainChartInstance.destroy();
-
-    domainChartInstance = new Chart(ctxDom, {
-      type: 'doughnut',
-      data: {
-        labels: domainLabels,
-        datasets: [{
-          data: domainData,
-          backgroundColor: pastelDomainPalette.slice(0, domainLabels.length),
-          borderColor: '#FFFFFF',
-          borderWidth: 2
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: "'Plus Jakarta Sans', sans-serif", size: 10 } } }
-        }
-      }
-    });
-  }
-
-  // Chart 5: Top 10 Faculty Publishing Leaderboard
   const facultyCounts = {};
-  filteredPublications.forEach(p => {
-    const name = p['Faculty Name'] || 'Unknown';
+  papers.forEach((paper) => {
+    const name = paper['Faculty Name'] || 'Unknown';
     facultyCounts[name] = (facultyCounts[name] || 0) + 1;
   });
+  const rankedFaculty = Object.entries(facultyCounts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const visibleFaculty = state.leaderboardLimit > 0 ? rankedFaculty.slice(0, state.leaderboardLimit) : rankedFaculty;
+  const leaderHost = document.getElementById('leaderboardChart');
+  if (leaderHost) leaderHost.parentElement.style.height = `${Math.max(250, visibleFaculty.length * 28)}px`;
+  const leaderActive = visibleFaculty.findIndex(([name]) => name === state.faculty);
+  mountChart('leaderboardChart', {
+    type: 'bar',
+    data: {
+      labels: visibleFaculty.map(([name]) => name),
+      datasets: [{
+        label: 'Publications',
+        data: visibleFaculty.map(([, count]) => count),
+        backgroundColor: fadeColors(visibleFaculty.map(() => '#81E6D9'), leaderActive),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      onClick: (_evt, elements) => { if (elements.length) toggleFilter('faculty', visibleFaculty[elements[0].index][0]); },
+      plugins: { legend: legendWithCounts(), tooltip: tooltipWithShare(total) },
+      scales: baseScales('Publications', 'Faculty', true)
+    }
+  });
 
-  const sortedFaculty = Object.entries(facultyCounts)
-    .sort((a, b) => b[1] - a[1])
+  const timeline = new Map();
+  papers.forEach((paper) => {
+    const month = monthNames.indexOf(paper['Published Month']);
+    const year = parseInt(paper['Published Year'], 10);
+    if (month < 0 || !year) return;
+    const key = year * 12 + month;
+    const current = timeline.get(key) || { label: `${shortMonths[month]} ${year}`, count: 0 };
+    current.count += 1;
+    timeline.set(key, current);
+  });
+  const ordered = [...timeline.entries()].sort((a, b) => a[0] - b[0]);
+  let running = 0;
+  const cumulative = ordered.map(([, point]) => {
+    running += point.count;
+    return running;
+  });
+  mountChart('cumulativeChart', ordered.length ? {
+    type: 'line',
+    data: {
+      labels: ordered.map(([, point]) => point.label),
+      datasets: [{
+        label: 'Running total',
+        data: cumulative,
+        borderColor: '#1A73E8',
+        backgroundColor: 'rgba(26, 115, 232, 0.15)',
+        fill: true,
+        tension: 0.2,
+        pointRadius: 3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: legendWithCounts(), tooltip: tooltipWithShare(total) },
+      scales: baseScales('Month', 'Running total', false)
+    }
+  } : null);
+
+  const groups = ['Journals', 'Conferences', 'Book chapters'];
+  mountChart('scopusChart', {
+    type: 'bar',
+    data: {
+      labels: groups,
+      datasets: SCOPUS_SERIES.map((series) => ({
+        label: series.label,
+        data: groups.map((group) => papers.filter((paper) => {
+          const coverage = coverageBucket(paper);
+          return coverage.group === group && coverage.series === series.id;
+        }).length),
+        backgroundColor: state.scopusStatus !== 'all' && state.scopusStatus !== series.id ? hexToRgba(series.color, 0.35) : series.color,
+        borderRadius: 4
+      }))
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      onClick: (_evt, elements) => { if (elements.length) toggleFilter('scopusStatus', SCOPUS_SERIES[elements[0].datasetIndex].id); },
+      plugins: { legend: legendWithCounts(), tooltip: tooltipWithShare(total) },
+      scales: { ...baseScales('Publication type', 'Publications', false), x: { ...baseScales('Publication type', 'Publications', false).x, stacked: true }, y: { ...baseScales('Publication type', 'Publications', false).y, stacked: true } }
+    }
+  });
+
+  const cited = [...papers]
+    .map((paper) => ({ title: paper['Paper Title'] || 'Untitled', citations: parseInt(paper['Citations'], 10) || 0 }))
+    .filter((paper) => paper.citations > 0)
+    .sort((a, b) => b.citations - a.citations)
     .slice(0, 10);
-
-  const canvasLead = document.getElementById('leaderboardChart');
-  if (canvasLead) {
-    const ctxLead = canvasLead.getContext('2d');
-    if (leaderboardChartInstance) leaderboardChartInstance.destroy();
-
-    leaderboardChartInstance = new Chart(ctxLead, {
-      type: 'bar',
-      data: {
-        labels: sortedFaculty.map(item => item[0]),
-        datasets: [{
-          label: 'Verified Publications',
-          data: sortedFaculty.map(item => item[1]),
-          backgroundColor: '#81E6D9',
-          borderColor: '#4FD1C5',
-          borderWidth: 1,
-          borderRadius: 4
-        }]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          x: { beginAtZero: true, grid: { color: '#F1F5F9' } },
-          y: { grid: { display: false }, ticks: { font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '600' } } }
+  const citedHost = document.getElementById('citedChart');
+  if (citedHost) citedHost.parentElement.style.height = `${Math.max(250, cited.length * 32)}px`;
+  mountChart('citedChart', cited.length ? {
+    type: 'bar',
+    data: {
+      labels: cited.map((paper) => (paper.title.length > 48 ? `${paper.title.slice(0, 48)}…` : paper.title)),
+      datasets: [{
+        label: 'Citations',
+        data: cited.map((paper) => paper.citations),
+        backgroundColor: '#F6AD55',
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: legendWithCounts(),
+        tooltip: {
+          callbacks: {
+            title: (items) => cited[items[0].dataIndex].title,
+            label: (ctx) => `${ctx.raw} citations`
+          }
         }
-      }
-    });
-  }
+      },
+      scales: baseScales('Citations', 'Paper', true)
+    }
+  } : null, 'No cited papers in the current filter.');
 }
 
 function facultyRecord(name) {
@@ -981,19 +1264,31 @@ const ANALYTICS_COLUMNS = [
 function renderFacultyAnalytics() {
   const host = document.getElementById('facultyAnalytics');
   if (!host) return;
-  const rows = sortedFacultyRows(statsByFaculty(periodPublications));
+  const rows = sortedFacultyRows(statsByFaculty(filteredPublications));
   const head = ANALYTICS_COLUMNS.map((column) => {
     const active = state.analyticsSortKey === column.key;
     const arrow = active ? (state.analyticsSortDir === 'asc' ? ' ↑' : ' ↓') : '';
-    return `<th><button type="button" class="sort-btn${active ? ' active' : ''}" data-sort-key="${column.key}">${esc(column.label)}${arrow}</button></th>`;
+    const aria = active ? (state.analyticsSortDir === 'asc' ? 'ascending' : 'descending') : 'none';
+    return `<th aria-sort="${aria}"><button type="button" class="sort-btn${active ? ' active' : ''}" data-sort-key="${column.key}">${esc(column.label)}${arrow}</button></th>`;
   }).join('');
-  const body = rows.map((row) => `
+  const totals = emptyStats();
+  rows.forEach((row) => {
+    ANALYTICS_COLUMNS.slice(1).forEach((column) => {
+      if (column.key in totals && !['journals', 'conferences', 'total'].includes(column.key)) {
+        totals[column.key] += row.stats[column.key] || 0;
+      }
+    });
+  });
+  addTotals(totals);
+  const body = rows.map((row, index) => `
     <tr data-open-faculty="${esc(row.name)}">
+      <td class="num">${index + 1}</td>
       <td class="analytics-name">${esc(row.name)}</td>
       ${ANALYTICS_COLUMNS.slice(1).map((column) => `<td class="num">${row.stats[column.key] || 0}</td>`).join('')}
     </tr>
   `).join('');
-  host.innerHTML = `<table class="analytics-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+  const foot = `<td class="num"></td><td>Total</td>${ANALYTICS_COLUMNS.slice(1).map((column) => `<td class="num">${totals[column.key] || 0}</td>`).join('')}`;
+  host.innerHTML = `<table class="analytics-table"><thead><tr><th>Rank</th>${head}</tr></thead><tbody>${body}</tbody><tfoot><tr>${foot}</tr></tfoot></table>`;
 }
 
 function miniStats(stats) {
@@ -1087,7 +1382,7 @@ function renderSectionedList(container, papers, omitEmpty) {
 function profilePapers() {
   const name = state.profileFaculty;
   if (!name) return [];
-  return periodPublications.filter((paper) => {
+  return filteredPublications.filter((paper) => {
     const faculty = paper['Faculty Name'] || '';
     return faculty === name || normalizeName(faculty) === normalizeName(name);
   });
@@ -1175,6 +1470,20 @@ function syncFromHash() {
 }
 
 function handlePortalClick(event) {
+  const sizeBtn = event.target.closest('[data-leaderboard]');
+  if (sizeBtn) {
+    state.leaderboardLimit = Number(sizeBtn.getAttribute('data-leaderboard'));
+    renderCharts();
+    syncControls();
+    return;
+  }
+
+  const clearBtn = event.target.closest('[data-clear-filter]');
+  if (clearBtn) {
+    clearFilter(clearBtn.getAttribute('data-clear-filter'));
+    return;
+  }
+
   const sortBtn = event.target.closest('[data-sort-key]');
   if (sortBtn) {
     const key = sortBtn.getAttribute('data-sort-key');
@@ -1198,8 +1507,7 @@ function handlePortalClick(event) {
     } else {
       state.bucket = id;
       state.currentPage = 1;
-      renderPublications();
-      renderBucketChips();
+      applyFilters();
     }
     return;
   }

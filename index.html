@@ -75,25 +75,25 @@
           <span class="kpi-icon-pill">📚</span>
         </div>
         <div class="kpi-number" id="kpiFilteredTotal">115</div>
-        <div class="kpi-subtitle" id="kpiScopeSubtitle">Papers in AY 2025–2026</div>
+        <div class="kpi-subtitle" id="kpiScopeSubtitle">of 180 identity-checked</div>
       </div>
 
       <div class="kpi-card ay2526">
         <div class="kpi-card-header">
-          <span class="kpi-card-title">Official AY 25–26</span>
-          <span class="kpi-icon-pill">📅</span>
+          <span class="kpi-card-title">Journals</span>
+          <span class="kpi-icon-pill">📰</span>
         </div>
-        <div class="kpi-number" id="kpiAY2526">115</div>
-        <div class="kpi-subtitle">60.0% Institutional Cycle</div>
+        <div class="kpi-number" id="kpiJournals">0</div>
+        <div class="kpi-subtitle" id="kpiJournalsSubtitle">of 180 identity-checked</div>
       </div>
 
       <div class="kpi-card postjune26">
         <div class="kpi-card-header">
-          <span class="kpi-card-title">Post-June 2026</span>
-          <span class="kpi-icon-pill">🚀</span>
+          <span class="kpi-card-title">Conferences</span>
+          <span class="kpi-icon-pill">🎤</span>
         </div>
-        <div class="kpi-number" id="kpiPostJune26">14</div>
-        <div class="kpi-subtitle">July–October 2026</div>
+        <div class="kpi-number" id="kpiConferences">0</div>
+        <div class="kpi-subtitle" id="kpiConferencesSubtitle">of 180 identity-checked</div>
       </div>
 
       <div class="kpi-card q12">
@@ -102,7 +102,7 @@
           <span class="kpi-icon-pill">💎</span>
         </div>
         <div class="kpi-number" id="kpiQ1Q2">10</div>
-        <div class="kpi-subtitle">SCImago Q1 or Q2 journals</div>
+        <div class="kpi-subtitle" id="kpiQ1Q2Subtitle">of 180 identity-checked</div>
       </div>
 
       <div class="kpi-card scholar">
@@ -111,7 +111,7 @@
           <span class="kpi-icon-pill">🎓</span>
         </div>
         <div class="kpi-number" id="kpiIndexingStatus">46</div>
-        <div class="kpi-subtitle">SCImago-confirmed Scopus</div>
+        <div class="kpi-subtitle" id="kpiIndexingSubtitle">of 180 identity-checked</div>
       </div>
     </section>
 
@@ -120,6 +120,7 @@
       <div class="chart-card">
         <div class="chart-card-header">
           <h2 class="chart-card-title">Journals, conferences, and book chapters</h2>
+          <p class="chart-caption">Each paper is counted once. Click a bar to filter; click it again to clear.</p>
         </div>
         <div class="chart-container tall">
           <canvas id="quartileChart"></canvas>
@@ -128,7 +129,8 @@
 
       <div class="chart-card">
         <div class="chart-card-header">
-          <h2 class="chart-card-title">Monthly Publication Velocity</h2>
+          <h2 class="chart-card-title">Monthly publication velocity</h2>
+          <p class="chart-caption">Papers by calendar month, one series per year present in the current filter.</p>
         </div>
         <div class="chart-container">
           <canvas id="monthlyChart"></canvas>
@@ -137,7 +139,8 @@
 
       <div class="chart-card">
         <div class="chart-card-header">
-          <h2 class="chart-card-title">Research by Faculty Designation</h2>
+          <h2 class="chart-card-title">Research by faculty designation</h2>
+          <p class="chart-caption">Click a bar to filter by designation. Unrecognized titles stay in Other.</p>
         </div>
         <div class="chart-container">
           <canvas id="designationChart"></canvas>
@@ -146,7 +149,8 @@
 
       <div class="chart-card">
         <div class="chart-card-header">
-          <h2 class="chart-card-title">Subject Domain Classification</h2>
+          <h2 class="chart-card-title">Subject domain</h2>
+          <p class="chart-caption">Click a slice to filter by subject domain.</p>
         </div>
         <div class="chart-container">
           <canvas id="domainChart"></canvas>
@@ -155,10 +159,48 @@
 
       <div class="chart-card wide">
         <div class="chart-card-header">
-          <h2 class="chart-card-title">Top 10 Faculty Publishing Leaderboard</h2>
+          <div>
+            <h2 class="chart-card-title">Faculty publishing leaderboard</h2>
+            <p class="chart-caption">Click a name to filter to that faculty member.</p>
+          </div>
+          <div class="leaderboard-size" role="group" aria-label="Leaderboard size">
+            <button type="button" class="bucket-chip active" data-leaderboard="10">Top 10</button>
+            <button type="button" class="bucket-chip" data-leaderboard="25">Top 25</button>
+            <button type="button" class="bucket-chip" data-leaderboard="0">All</button>
+          </div>
         </div>
         <div class="chart-container">
           <canvas id="leaderboardChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card wide">
+        <div class="chart-card-header">
+          <h2 class="chart-card-title">Cumulative output</h2>
+          <p class="chart-caption">Running total of the filtered publications, month by month.</p>
+        </div>
+        <div class="chart-container">
+          <canvas id="cumulativeChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h2 class="chart-card-title">Scopus coverage</h2>
+          <p class="chart-caption">SCImago-confirmed, unconfirmed, and not indexed, split by publication type. Click a colour to filter.</p>
+        </div>
+        <div class="chart-container">
+          <canvas id="scopusChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card wide">
+        <div class="chart-card-header">
+          <h2 class="chart-card-title">Most-cited papers</h2>
+          <p class="chart-caption">Top 10 by citation count inside the current filter. The tooltip shows the full title.</p>
+        </div>
+        <div class="chart-container tall">
+          <canvas id="citedChart"></canvas>
         </div>
       </div>
     </section>
@@ -167,11 +209,13 @@
       <div class="chart-card wide">
         <div class="chart-card-header">
           <h2 class="chart-card-title">Each faculty: journals, conferences, and book chapters</h2>
-          <p class="analytics-note">Counts follow the selected period. Q4 journals do not include book chapters.</p>
+          <p class="analytics-note">Every count on this page follows the active filters. Q4 journals do not include book chapters.</p>
         </div>
         <div class="analytics-scroll" id="facultyAnalytics"></div>
       </div>
     </section>
+
+    <div id="activeFilters" class="active-filters" aria-label="Active filters"></div>
 
     <!-- FILTER & SEARCH CONTROLS -->
     <section class="controls-bar" aria-label="Filters and Search Controls">
@@ -194,6 +238,7 @@
           <option value="Associate Professor">Associate Professor</option>
           <option value="Assistant Professor">Assistant Professor</option>
           <option value="Teaching Assistant">Teaching Assistant</option>
+          <option value="Other">Other</option>
         </select>
 
         <!-- SJR Quartile Filter -->

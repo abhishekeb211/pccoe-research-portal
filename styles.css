@@ -377,9 +377,69 @@ body {
 
 .chart-card-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
   margin-bottom: 1rem;
+}
+
+.chart-caption {
+  width: 100%;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.chart-empty {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding: 2rem 0.5rem;
+  text-align: center;
+}
+
+.leaderboard-size {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+}
+
+.active-filters-summary {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.active-filters-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.filter-chip {
+  border: 1px solid var(--pastel-ice-border);
+  background: var(--pastel-ice-bg);
+  color: var(--pastel-ice-fg);
+  border-radius: var(--radius-pill);
+  padding: 0.3rem 0.7rem;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.analytics-table tfoot td {
+  font-weight: 800;
+  color: var(--text-main);
+  background: var(--bg-surface);
 }
 
 .chart-card-title {
