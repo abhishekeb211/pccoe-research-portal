@@ -1364,9 +1364,12 @@ function renderBucketChips() {
 function renderPaperRow(paper) {
   const bucket = paperBucket(paper);
   const doiText = doiLabel(paper['DOI']);
+  const articleUrl = paper['Paper URL'] || '';
   const doiHtml = doiText
     ? `<a class="doi-link" href="${esc(doiHref(paper['DOI']))}" target="_blank" rel="noopener noreferrer">${esc(doiText)}</a>`
-    : `<span class="doi-missing">No DOI</span>`;
+    : (articleUrl
+      ? `<a class="doi-link" href="${esc(articleUrl)}" target="_blank" rel="noopener noreferrer">Article link</a>`
+      : `<span class="doi-missing">No DOI</span>`);
   const badges = [];
   if (bucket === 'book_chapter' && ['Q1', 'Q2', 'Q3', 'Q4'].includes(paper['SJR Quartile'])) {
     badges.push(`<span class="badge badge-q4">${esc(paper['SJR Quartile'])} series</span>`);
@@ -1376,6 +1379,14 @@ function renderPaperRow(paper) {
   }
   if (bucket === 'non_scopus_conference') badges.push('<span class="badge badge-ice">Scopus unconfirmed</span>');
   if (bucket === 'scopus_conference') badges.push('<span class="badge badge-mint">Scopus indexed</span>');
+  const claim = String(paper['Incentive Claim'] || '');
+  if (claim) {
+    const amount = paper['Incentive Amount'] ? ` ${paper['Incentive Amount']}` : '';
+    badges.push(`<span class="badge ${claim.toLowerCase() === 'yes' ? 'badge-mint' : 'badge-slate'}">Incentive ${esc(claim)}${esc(amount)}</span>`);
+  }
+  if (paper['Claimed Quartile'] && paper['Claimed Quartile'] !== paper['SJR Quartile']) {
+    badges.push(`<span class="badge badge-q3">Claimed ${esc(paper['Claimed Quartile'])}</span>`);
+  }
   const date = paper['Published Date'] || `${paper['Published Month'] || ''} ${paper['Published Year'] || ''}`.trim();
   const cites = parseInt(paper['Citations'], 10) || 0;
   return `
