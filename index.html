@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PCCOE Pune - Computer Engineering Research Portal & Scopus/SJR Audit (2025–Present)</title>
+  <meta name="description" content="Verified institutional research output and indexing audit for PCCOE Pune Computer Engineering Department. Features complete Scopus, SCImago (SJR) Quartiles (Q1-Q4), and Beall's List predatory threat screening across 979 publications.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- ==================== HEADER ==================== -->
+  <header class="site-header">
+    <div class="header-container">
+      <div class="brand-wrapper">
+        <div class="brand-logo-badge">PC</div>
+        <div class="brand-title-group">
+          <h1>Pimpri Chinchwad College of Engineering</h1>
+          <p>Department of Computer Engineering &bull; Research Intelligence & Indexing Audit (2025–Present)</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="exportCsvBtn" class="btn-pill" title="Export filtered publications to CSV">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+        <a href="https://github.com/abhishekeb211/pccoe-research-portal" target="_blank" rel="noopener noreferrer" class="btn-pill primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub Repository
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="main-wrapper">
+
+    <!-- PERIOD SELECTOR PILLS -->
+    <section class="period-selector-section" aria-label="Academic Period Filter">
+      <div class="period-title">Select Academic Accreditation Period</div>
+      <div class="period-pills-row" id="periodPillsContainer">
+        <button class="period-tab-btn" data-period="all">
+          <span>🌟 All Publications</span>
+          <span class="period-badge-count" id="countAll">979</span>
+        </button>
+        <button class="period-tab-btn active" data-period="ay2526">
+          <span>📅 AY 2025–2026 (July 2025 – June 2026)</span>
+          <span class="period-badge-count" id="countAY2526">591</span>
+        </button>
+        <button class="period-tab-btn" data-period="postjune26">
+          <span>🚀 Recent Momentum (July – October 2026)</span>
+          <span class="period-badge-count" id="countPostJune26">123</span>
+        </button>
+        <button class="period-tab-btn" data-period="prejuly25">
+          <span>🕒 Early 2025 (Jan – June 2025)</span>
+          <span class="period-badge-count" id="countPreJuly25">265</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- LIVE KPI METRIC CARDS -->
+    <section class="kpi-grid" aria-label="Key Performance Indicators">
+      <div class="kpi-card total">
+        <div class="kpi-card-header">
+          <span class="kpi-card-title">Filter Scope</span>
+          <span class="kpi-icon-pill">📚</span>
+        </div>
+        <div class="kpi-number" id="kpiFilteredTotal">591</div>
+        <div class="kpi-subtitle" id="kpiScopeSubtitle">Papers in AY 2025–2026</div>
+      </div>
+
+      <div class="kpi-card ay2526">
+        <div class="kpi-card-header">
+          <span class="kpi-card-title">Official AY 25–26</span>
+          <span class="kpi-icon-pill">📅</span>
+        </div>
+        <div class="kpi-number">591</div>
+        <div class="kpi-subtitle">60.4% Institutional Cycle</div>
+      </div>
+
+      <div class="kpi-card postjune26">
+        <div class="kpi-card-header">
+          <span class="kpi-card-title">Post-June 2026</span>
+          <span class="kpi-icon-pill">🚀</span>
+        </div>
+        <div class="kpi-number">123</div>
+        <div class="kpi-subtitle">Recent Q1 AY 26–27 Output</div>
+      </div>
+
+      <div class="kpi-card q12">
+        <div class="kpi-card-header">
+          <span class="kpi-card-title">Elite Scopus Q1/Q2</span>
+          <span class="kpi-icon-pill">💎</span>
+        </div>
+        <div class="kpi-number" id="kpiQ1Q2">48</div>
+        <div class="kpi-subtitle">Top 50% Global Citation Prestige</div>
+      </div>
+
+      <div class="kpi-card predatory">
+        <div class="kpi-card-header">
+          <span class="kpi-card-title">Audit Risk / Flagged</span>
+          <span class="kpi-icon-pill">⚠️</span>
+        </div>
+        <div class="kpi-number" id="kpiPredatory">56</div>
+        <div class="kpi-subtitle">Beall's List / Discontinued (5.7%)</div>
+      </div>
+    </section>
+
+    <!-- CHARTS SECTION -->
+    <section class="charts-section" aria-label="Visual Analytics">
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h2 class="chart-card-title">SJR Quartile & Medium Spread</h2>
+        </div>
+        <div class="chart-container">
+          <canvas id="quartileChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h2 class="chart-card-title">Monthly Publication Velocity</h2>
+        </div>
+        <div class="chart-container">
+          <canvas id="monthlyChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- FILTER & SEARCH CONTROLS -->
+    <section class="controls-bar" aria-label="Filters and Search Controls">
+      <div class="search-input-group">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by paper title, faculty name, journal / conference, or DOI...">
+      </div>
+
+      <div class="filter-dropdowns-row">
+        <select id="filterDesignation" class="filter-select">
+          <option value="all">Faculty Designation: All</option>
+          <option value="Professor and HOD">Professor and HOD</option>
+          <option value="Professor">Professor</option>
+          <option value="Associate Professor">Associate Professor</option>
+          <option value="Assistant Professor">Assistant Professor</option>
+        </select>
+
+        <select id="filterQuartile" class="filter-select">
+          <option value="all">SJR Quartile: All</option>
+          <option value="Q1">Q1 (Top 25% Elite)</option>
+          <option value="Q2">Q2 (Top 25%–50%)</option>
+          <option value="Q3">Q3 (Recognized)</option>
+          <option value="Q4">Q4 (Standard)</option>
+          <option value="Book Chapter">Book Chapter (CRC/Springer)</option>
+          <option value="Conference Proceeding">Conference Proceeding (IEEE/Springer)</option>
+        </select>
+
+        <select id="filterPosition" class="filter-select">
+          <option value="all">Author Position: All</option>
+          <option value="1st">1st Author</option>
+          <option value="2nd">2nd Author</option>
+          <option value="Senior">Senior / Last Author</option>
+          <option value="Corresponding">Corresponding Author</option>
+        </select>
+
+        <select id="filterScopus" class="filter-select">
+          <option value="all">Scopus Status: All</option>
+          <option value="Scopus Indexed">Scopus Active Indexed</option>
+          <option value="IEEE">IEEE Conference Proceeding</option>
+          <option value="Preprint">Preprint / Open Repository</option>
+          <option value="Discontinued">Discontinued by Scopus</option>
+        </select>
+
+        <select id="filterBeall" class="filter-select">
+          <option value="all">Beall's Threat: All</option>
+          <option value="Clean">Clean / Verified Outlets</option>
+          <option value="CRITICAL">Flagged Predatory (Beall's List)</option>
+        </select>
+      </div>
+
+      <div class="controls-actions-row">
+        <div class="results-status-text">
+          Showing <strong id="showingCount">0</strong> of <strong id="totalCount">0</strong> verified publications
+        </div>
+
+        <div class="view-toggle-group">
+          <button id="resetFiltersBtn" class="btn-toggle-view" title="Reset all search and dropdown filters">
+            &#8634; Reset
+          </button>
+          <button id="viewCardsBtn" class="btn-toggle-view active" title="Switch to Cards View">
+            &#9638; Cards
+          </button>
+          <button id="viewTableBtn" class="btn-toggle-view" title="Switch to Spreadsheet Table View">
+            &#9776; Table
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- AUDIT WARNING BANNER -->
+    <div id="auditAlertBanner" class="audit-alert-banner" style="display: none;">
+      <div class="audit-alert-icon">⚠️</div>
+      <div class="audit-alert-content">
+        <h3>Predatory & Discontinued Outlet Warning</h3>
+        <p>The current view contains publications flagged on <strong>Beall's List of Predatory Journals/Publishers</strong> (e.g. <em>IJSREM</em>, <em>IJRASET</em>, <em>IJFMR</em>) or discontinued by Scopus (<em>IJ Drug Delivery Tech</em>). These venues must be excluded from official NIRF / NAAC accreditation submissions.</p>
+      </div>
+    </div>
+
+    <!-- PUBLICATIONS CONTAINER: CARD VIEW -->
+    <section id="cardsContainer" class="publications-card-grid" aria-label="Publications Cards"></section>
+
+    <!-- PUBLICATIONS CONTAINER: TABLE VIEW -->
+    <section id="tableContainer" class="publications-table-container" aria-label="Publications Table">
+      <table class="publications-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Faculty Name</th>
+            <th>Designation</th>
+            <th>Position</th>
+            <th>Paper Title</th>
+            <th>Venue / Source</th>
+            <th>Period</th>
+            <th>Date</th>
+            <th>SJR Quartile</th>
+            <th>Scopus Status</th>
+            <th>Beall's Flag</th>
+            <th>DOI</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </section>
+
+    <!-- PAGINATION -->
+    <nav class="pagination-wrapper" id="paginationNav" aria-label="Pagination"></nav>
+
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="https://www.scopus.com/sources" target="_blank" rel="noopener noreferrer" class="footer-link">Scopus Sources</a>
+      <a href="https://www.scimagojr.com/" target="_blank" rel="noopener noreferrer" class="footer-link">SCImago Journal Rank (SJR)</a>
+      <a href="https://beallslists.com/" target="_blank" rel="noopener noreferrer" class="footer-link">Beall's Lists of Predatory Journals</a>
+      <a href="http://lod.springer.com" target="_blank" rel="noopener noreferrer" class="footer-link">Springer Linked Open Data (LOD)</a>
+      <a href="https://www.aischolar.com/news/article/how-to-verify-scopus-indexing" target="_blank" rel="noopener noreferrer" class="footer-link">AI Scholar Verification Protocol</a>
+    </div>
+    <p>Pimpri Chinchwad College of Engineering (PCCOE Pune) &bull; Department of Computer Engineering &bull; Autonomous Institute</p>
+    <p style="margin-top: 0.5rem; font-size: 0.78rem;">Autonomous Research Verification Suite &bull; Last Audit Update: October 2026</p>
+  </footer>
+
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
