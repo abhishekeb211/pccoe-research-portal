@@ -654,9 +654,15 @@ function renderFacultyDirectory() {
           ${aoi}
         </p>
 
+        ${st.total > 0 ? `
         <button class="btn-filter-faculty" onclick="filterByFaculty('${name.replace(/'/g, "\\'")}')">
           View All ${st.total} Publications &rarr;
         </button>
+        ` : `
+        <div style="font-size: 0.74rem; color: var(--text-muted); padding: 0.45rem; background: var(--bg-surface); border-radius: var(--radius-pill); border: 1px dashed var(--border-light); font-weight: 600; width: 100%;">
+          Unlinked on Dept Portal (0 Papers)
+        </div>
+        `}
       </div>
     `;
   }).join('');

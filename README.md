@@ -1,11 +1,11 @@
 # PCCOE Pune - Computer Engineering Research Portal & Scopus/SJR Audit (2025–Present)
 
 [![GitHub Pages Deployment](https://img.shields.io/badge/Deployment-GitHub%20Pages-success?style=for-the-badge&logo=github)](https://abhishekeb211.github.io/pccoe-research-portal/)
-[![Total Publications](https://img.shields.io/badge/Verified%20Publications-458-blue?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
-[![Faculty Covered](https://img.shields.io/badge/Faculty%20Roster-50%20%2B%201%20TA%20(51)-purple?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
+[![Total Publications](https://img.shields.io/badge/Verified%20Publications-425-blue?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
+[![Profile-Linked Faculty](https://img.shields.io/badge/Active%20Researchers-45%20Faculty-purple?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
 [![Photos Verified](https://img.shields.io/badge/Photo%20Coverage-100%25%20Verified-brightgreen?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
-[![Scopus Q1/Q2](https://img.shields.io/badge/Elite%20Q1%2FQ2-31%20Papers-gold?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
-[![Indexed Status](https://img.shields.io/badge/Indexing-Scopus%20%26%20Scholar%20Only-emerald?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
+[![Scopus Q1/Q2](https://img.shields.io/badge/Elite%20Q1%2FQ2-27%20Papers-gold?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
+[![Website Verification](https://img.shields.io/badge/Source-computer.pccoepune.com-emerald?style=for-the-badge)](https://computer.pccoepune.com/faculty-profile)
 
 An executive institutional web portal, visual analytics dashboard, and academic indexing audit suite for the **Department of Computer Engineering, Pimpri Chinchwad College of Engineering (PCCOE Pune)**.
 
@@ -16,27 +16,28 @@ An executive institutional web portal, visual analytics dashboard, and academic 
 
 ## 🌟 Key Highlights & Engineering Features
 
-### 1. 100% Verified Faculty Photos (51 of 51 Members)
-- Exhaustive departmental coverage: **50 Faculty Members + 1 Teaching Assistant (51 Total)**.
-- Every single faculty member has an official portrait scraped directly from institutional servers, optimized into standard 240×240 WebP/JPEG format (`images/faculty/`).
-- Photos are rendered with zero latency across **all 458 publication cards** and in the **Faculty Directory grid**.
+### 1. Strict Departmental Website Profile Ingestion
+- Research publications are extracted **ONLY** for faculty members who have an active, official research profile (Google Scholar and/or Scopus Profile URL) linked directly on the official PCCOE portal: [https://computer.pccoepune.com/faculty-profile](https://computer.pccoepune.com/faculty-profile).
+- **45 Active Research Faculty Members** have verified research profiles on the departmental portal.
+- **6 Faculty Members / Teaching Assistant** without profile links on the site are preserved in the Departmental Roster Directory, but have 0 publications extracted.
+- **100% Photo Coverage**: All 51 members have verified official portraits in standard 240×240 WebP/JPEG format (`images/faculty/`).
 
-### 2. Multi-Cycle Academic Period Stratification
-- **AY 2025–2026** (`July 2025 – June 2026`): **274 Publications (59.8%)** — the core institutional accreditation window for NIRF, NBA, and NAAC.
-- **Post-June 2026 Momentum** (`July – October 2026`): **59 Publications (12.9%)** — recent publication momentum and early Q1 output for AY 2026–2027.
-- **Early 2025** (`January – June 2025`): **125 Publications (27.3%)** — previous academic cycle rollover.
+### 2. Multi-Cycle Academic Period Stratification (425 Publications)
+- **AY 2025–2026** (`July 2025 – June 2026`): **255 Publications (60.0%)** — the core institutional accreditation window for NIRF, NBA, and NAAC.
+- **Post-June 2026 Momentum** (`July – October 2026`): **56 Publications (13.2%)** — recent publication momentum and early Q1 output for AY 2026–2027.
+- **Early 2025** (`January – June 2025`): **114 Publications (26.8%)** — previous academic cycle rollover.
 
 ### 3. Empirical Indexing Standard (100% Scopus & Google Scholar Only)
-All 458 retained publications are verified against international indexing databases, with all unverified, discontinued, or predatory outlets completely excluded:
-- **Scopus Sources Coverage** (`scopus.com/sources`): Verified active coverage status across journals, conference proceedings, and book series.
+All 425 publications are verified against international indexing databases:
+- **Scopus Sources Coverage** (`scopus.com/sources`): **369 Papers (86.8%)** across active Scopus journals, IEEE conference proceedings, and Springer/CRC book chapters.
 - **SCImago Journal Rank (SJR) Quartiles**:
-  - **Q1 Elite**: 22 papers (Top 25% worldwide prestige).
-  - **Q2 High Impact**: 9 papers (Top 25%–50%).
-  - **Q3 / Q4 Recognized**: 33 papers.
-  - **Book Chapters**: 113 chapters published with CRC Press, Springer Nature, and Wiley.
-  - **Conference Proceedings**: 120 papers in Scopus-indexed IEEE and Springer series.
-- **Google Scholar Verified**: Legitimate academic preprints and institutional open repositories.
-- **Zero Predatory Outlets**: All 20 flagged predatory and discontinued journals have been removed from the repository.
+  - **Q1 Elite**: 20 papers (Top 25% worldwide prestige).
+  - **Q2 High Impact**: 7 papers (Top 25%–50%).
+  - **Q3 / Q4 Recognized**: 30 papers.
+  - **Book Chapters**: 110 chapters published with CRC Press, Springer Nature, and Wiley.
+  - **Conference Proceedings**: 118 papers in Scopus-indexed IEEE and Springer series.
+- **Google Scholar Academic Outlets**: **56 Papers (13.2%)** across peer-reviewed preprints and institutional open repositories.
+- **Zero Predatory Outlets**: All unindexed/predatory outlets completely excluded.
 
 ### 4. Five (5) Dynamic Visual Analytics (Chart.js)
 The portal features 5 interactive charts with responsive pastel styling that dynamically recalculate whenever filters change:
