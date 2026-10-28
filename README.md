@@ -78,7 +78,7 @@ pccoe-research-portal/
 ├── styles.css                 # Responsive CSS design system (pure white canvas, pastel palette)
 ├── app.js                     # Client-side engine: 10 filters, 5 Chart.js instances, directory & export
 ├── data/
-│   ├── publications.json      # 478 verified publications with photo_url, SJR, DOI & timestamps
+│   ├── publications.json      # 425 strictly verified publications with photo_url, SJR, DOI & timestamps
 │   ├── faculty.json           # 51 official faculty profiles with headshots, designations & AOI
 │   └── PCCOE_Comp_Research_Master_Audit_2025_2026.xlsx  # Re-audited master Excel workbook (202 KB)
 ├── images/
