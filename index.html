@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PCCOE Pune - Computer Engineering Research Portal & Scopus/SJR Audit (2025–Present)</title>
-  <meta name="description" content="Verified institutional research output and indexing audit for PCCOE Pune Computer Engineering Department. Features complete Scopus, SCImago (SJR) Quartiles (Q1-Q4), and Beall's List predatory threat screening across 979 publications.">
+  <meta name="description" content="Verified institutional research output and indexing audit for PCCOE Pune Computer Engineering Department. Features complete Scopus, SCImago (SJR) Quartiles (Q1-Q4), and Beall's List predatory threat screening across 478 publications and 51 official faculty members.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
         <div class="brand-logo-badge">PC</div>
         <div class="brand-title-group">
           <h1>Pimpri Chinchwad College of Engineering</h1>
-          <p>Department of Computer Engineering &bull; Research Intelligence & Indexing Audit (2025–Present)</p>
+          <p>Department of Computer Engineering &bull; Official Roster Research & Indexing Audit (2025–Present)</p>
         </div>
       </div>
       <div class="header-actions">
@@ -31,7 +31,7 @@
         </button>
         <a href="https://github.com/abhishekeb211/pccoe-research-portal" target="_blank" rel="noopener noreferrer" class="btn-pill primary">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-          GitHub Repository
+          GitHub Repo
         </a>
       </div>
     </div>
@@ -111,7 +111,7 @@
       </div>
     </section>
 
-    <!-- CHARTS SECTION -->
+    <!-- CHARTS ANALYTICS SECTION -->
     <section class="charts-section" aria-label="Visual Analytics">
       <div class="chart-card">
         <div class="chart-card-header">
@@ -130,6 +130,33 @@
           <canvas id="monthlyChart"></canvas>
         </div>
       </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h2 class="chart-card-title">Research by Faculty Designation</h2>
+        </div>
+        <div class="chart-container">
+          <canvas id="designationChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h2 class="chart-card-title">Subject Domain Classification</h2>
+        </div>
+        <div class="chart-container">
+          <canvas id="domainChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card wide">
+        <div class="chart-card-header">
+          <h2 class="chart-card-title">Top 10 Faculty Publishing Leaderboard</h2>
+        </div>
+        <div class="chart-container">
+          <canvas id="leaderboardChart"></canvas>
+        </div>
+      </div>
     </section>
 
     <!-- FILTER & SEARCH CONTROLS -->
@@ -140,14 +167,22 @@
       </div>
 
       <div class="filter-dropdowns-row">
+        <!-- Faculty Member Filter -->
+        <select id="filterFaculty" class="filter-select">
+          <option value="all">Faculty Member: All 51</option>
+        </select>
+
+        <!-- Designation Filter -->
         <select id="filterDesignation" class="filter-select">
-          <option value="all">Faculty Designation: All</option>
-          <option value="Professor and HOD">Professor and HOD</option>
+          <option value="all">Designation: All</option>
+          <option value="Professor & HOD">Professor & HOD</option>
           <option value="Professor">Professor</option>
           <option value="Associate Professor">Associate Professor</option>
           <option value="Assistant Professor">Assistant Professor</option>
+          <option value="Teaching Assistant">Teaching Assistant</option>
         </select>
 
+        <!-- SJR Quartile Filter -->
         <select id="filterQuartile" class="filter-select">
           <option value="all">SJR Quartile: All</option>
           <option value="Q1">Q1 (Top 25% Elite)</option>
@@ -158,6 +193,7 @@
           <option value="Conference Proceeding">Conference Proceeding (IEEE/Springer)</option>
         </select>
 
+        <!-- Author Position Filter -->
         <select id="filterPosition" class="filter-select">
           <option value="all">Author Position: All</option>
           <option value="1st">1st Author</option>
@@ -166,6 +202,27 @@
           <option value="Corresponding">Corresponding Author</option>
         </select>
 
+        <!-- Subject Domain Filter -->
+        <select id="filterDomain" class="filter-select">
+          <option value="all">Subject Domain: All</option>
+          <option value="Artificial Intelligence & Machine Learning">AI & Machine Learning</option>
+          <option value="Cybersecurity & Blockchain">Cybersecurity & Blockchain</option>
+          <option value="Cloud Computing & IoT">Cloud Computing & IoT</option>
+          <option value="Healthcare & Biomedical Informatics">Healthcare & Bio Informatics</option>
+          <option value="Data Science & Big Data Analytics">Data Science & Big Data</option>
+          <option value="Software Engineering & Applied Computing">Software Engineering</option>
+        </select>
+
+        <!-- Medium Category Filter -->
+        <select id="filterMedium" class="filter-select">
+          <option value="all">Medium: All</option>
+          <option value="Journal Article">Journal Article</option>
+          <option value="Conference Proceeding">Conference Proceeding</option>
+          <option value="Book Chapter">Book Chapter</option>
+          <option value="Preprint / Open Repository">Preprint / Archive</option>
+        </select>
+
+        <!-- Scopus Status Filter -->
         <select id="filterScopus" class="filter-select">
           <option value="all">Scopus Status: All</option>
           <option value="Scopus Indexed">Scopus Active Indexed</option>
@@ -174,10 +231,19 @@
           <option value="Discontinued">Discontinued by Scopus</option>
         </select>
 
+        <!-- Beall's Threat Filter -->
         <select id="filterBeall" class="filter-select">
           <option value="all">Beall's Threat: All</option>
           <option value="Clean">Clean / Verified Outlets</option>
           <option value="CRITICAL">Flagged Predatory (Beall's List)</option>
+        </select>
+
+        <!-- Sort By -->
+        <select id="filterSort" class="filter-select">
+          <option value="date-desc">Sort: Date (Newest First)</option>
+          <option value="date-asc">Sort: Date (Oldest First)</option>
+          <option value="citations-desc">Sort: Citations (Highest)</option>
+          <option value="faculty-asc">Sort: Faculty Name (A-Z)</option>
         </select>
       </div>
 
@@ -195,6 +261,9 @@
           </button>
           <button id="viewTableBtn" class="btn-toggle-view" title="Switch to Spreadsheet Table View">
             &#9776; Table
+          </button>
+          <button id="viewDirectoryBtn" class="btn-toggle-view" title="View 51 Faculty Directory Profiles">
+            👥 Faculty Directory (51)
           </button>
         </div>
       </div>
@@ -234,6 +303,9 @@
         <tbody id="tableBody"></tbody>
       </table>
     </section>
+
+    <!-- FACULTY DIRECTORY CONTAINER -->
+    <section id="facultyDirectoryContainer" class="faculty-directory-grid" aria-label="Faculty Directory"></section>
 
     <!-- PAGINATION -->
     <nav class="pagination-wrapper" id="paginationNav" aria-label="Pagination"></nav>

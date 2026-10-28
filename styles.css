@@ -1,7 +1,7 @@
 /* ==========================================================================
    PCCOE COMPUTER ENGINEERING - RESEARCH & INDEXING INTELLIGENCE PORTAL
-   Design System: White Canvas (#FFFFFF) + Curated Pastel Accents
-   Full Mobile, Tablet & Desktop Responsiveness
+   Design System: Pure White Canvas (#FFFFFF) + Curated Pastel Accents
+   100% Mobile, Tablet & Desktop Responsiveness
    ========================================================================== */
 
 :root {
@@ -125,6 +125,7 @@ body {
   font-weight: 700;
   font-size: 1.25rem;
   box-shadow: var(--shadow-subtle);
+  flex-shrink: 0;
 }
 
 .brand-title-group h1 {
@@ -143,6 +144,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .btn-pill {
@@ -354,7 +356,7 @@ body {
 .kpi-card.predatory .kpi-number { color: var(--pastel-coral-fg); }
 
 /* ==========================================================================
-   CHARTS EXPANDABLE SECTION
+   CHARTS ANALYTICS SECTION (5 RESPONSIVE CHARTS)
    ========================================================================== */
 .charts-section {
   margin-bottom: 1.5rem;
@@ -369,6 +371,8 @@ body {
   border-radius: var(--radius-lg);
   padding: 1.25rem;
   box-shadow: var(--shadow-subtle);
+  display: flex;
+  flex-direction: column;
 }
 
 .chart-card-header {
@@ -390,8 +394,12 @@ body {
   width: 100%;
 }
 
+.chart-card.wide {
+  grid-column: 1 / -1;
+}
+
 /* ==========================================================================
-   FILTER & SEARCH CONTROLS
+   FILTER & SEARCH CONTROLS (MULTI-DIMENSIONAL MATRIX)
    ========================================================================== */
 .controls-bar {
   background: #FFFFFF;
@@ -439,7 +447,7 @@ body {
 
 .filter-dropdowns-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 0.75rem;
 }
 
@@ -454,6 +462,7 @@ body {
   cursor: pointer;
   font-weight: 500;
   transition: border-color var(--transition-fast);
+  width: 100%;
 }
 
 .filter-select:focus {
@@ -483,6 +492,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .btn-toggle-view {
@@ -497,6 +507,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  transition: all var(--transition-fast);
 }
 
 .btn-toggle-view.active {
@@ -506,7 +517,7 @@ body {
 }
 
 /* ==========================================================================
-   PUBLICATIONS: CARD VIEW
+   PUBLICATIONS: CARD VIEW (WITH VERIFIED PHOTOS)
    ========================================================================== */
 .publications-card-grid {
   display: grid;
@@ -535,18 +546,19 @@ body {
 
 .pub-card-top {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.85rem;
 }
 
 .faculty-avatar {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--border-light);
   background: var(--bg-alt);
   flex-shrink: 0;
+  box-shadow: var(--shadow-subtle);
 }
 
 .faculty-meta {
@@ -595,6 +607,7 @@ body {
 .badge-predatory { background: var(--pastel-coral-bg); color: var(--pastel-coral-fg); border-color: var(--pastel-coral-border); }
 .badge-ay { background: var(--pastel-seafoam-bg); color: var(--pastel-seafoam-fg); border-color: var(--pastel-seafoam-border); }
 .badge-recent { background: var(--pastel-sky-bg); color: var(--pastel-sky-fg); border-color: var(--pastel-sky-border); }
+.badge-domain { background: var(--bg-alt); color: var(--text-secondary); border-color: var(--border-light); }
 
 .pub-title {
   font-size: 0.98rem;
@@ -636,6 +649,105 @@ body {
 
 .pub-link-btn:hover {
   text-decoration: underline;
+}
+
+/* ==========================================================================
+   FACULTY DIRECTORY VIEW (51 PROFILES)
+   ========================================================================== */
+.faculty-directory-grid {
+  display: none;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.faculty-profile-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-subtle);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.faculty-profile-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.profile-card-avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--pastel-ice-border);
+  box-shadow: var(--shadow-card);
+}
+
+.profile-card-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.profile-card-desig {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--pastel-ice-fg);
+}
+
+.profile-card-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.6rem 0;
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  margin-top: 0.25rem;
+}
+
+.profile-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-stat-number {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.profile-stat-lbl {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.btn-filter-faculty {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-light);
+  background: #FFFFFF;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-filter-faculty:hover {
+  background: var(--pastel-ice-bg);
+  color: var(--pastel-ice-fg);
+  border-color: var(--pastel-ice-border);
 }
 
 /* ==========================================================================
@@ -688,6 +800,7 @@ body {
   justify-content: center;
   gap: 0.5rem;
   margin-bottom: 3rem;
+  flex-wrap: wrap;
 }
 
 .page-btn {
@@ -820,5 +933,8 @@ body {
   .controls-actions-row {
     flex-direction: column;
     align-items: flex-start;
+  }
+  .faculty-directory-grid {
+    grid-template-columns: 1fr;
   }
 }
