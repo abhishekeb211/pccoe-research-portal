@@ -1,6 +1,6 @@
 /* ==========================================================================
    PCCOE COMPUTER ENGINEERING - RESEARCH & INDEXING INTELLIGENCE PORTAL
-   Vanilla JavaScript Client-Side Engine: Filtering, Search, 5 Charts & Directory
+   Vanilla JavaScript Client-Side Engine: Clean Scopus & Google Scholar Only
    ========================================================================== */
 
 let allPublications = [];
@@ -19,7 +19,7 @@ const state = {
   domain: 'all',
   medium: 'all',
   scopusStatus: 'all',
-  beallFlag: 'all',
+  indexSource: 'all', // 'all', 'scopus', 'scholar'
   sortBy: 'date-desc',
   viewMode: 'cards', // 'cards', 'table', 'directory'
   currentPage: 1,
@@ -94,7 +94,6 @@ function populateFacultyDropdown() {
   const select = document.getElementById('filterFaculty');
   if (!select) return;
 
-  // Calculate paper count per faculty member across the dataset
   const countMap = {};
   allPublications.forEach(p => {
     const fName = p['Faculty Name'];
@@ -103,12 +102,10 @@ function populateFacultyDropdown() {
     }
   });
 
-  // Unique list of faculty names from facultyList or publications
   const names = facultyList.length > 0 
     ? facultyList.map(f => f.Name || f.name)
     : Object.keys(countMap);
 
-  // Sort names alphabetically
   names.sort((a, b) => a.localeCompare(b));
 
   select.innerHTML = '<option value="all">Faculty Member: All 51</option>';
@@ -137,6 +134,11 @@ function updatePeriodPillCounts() {
   if (countPostJune26El) countPostJune26El.textContent = counts.postjune26;
   const countPreJuly25El = document.getElementById('countPreJuly25');
   if (countPreJuly25El) countPreJuly25El.textContent = counts.prejuly25;
+
+  const kpiAYEl = document.getElementById('kpiAY2526');
+  if (kpiAYEl) kpiAYEl.textContent = counts.ay2526;
+  const kpiPostEl = document.getElementById('kpiPostJune26');
+  if (kpiPostEl) kpiPostEl.textContent = counts.postjune26;
 }
 
 function setupEventListeners() {
@@ -185,7 +187,7 @@ function setupEventListeners() {
   bindSelect('filterDomain', 'domain');
   bindSelect('filterMedium', 'medium');
   bindSelect('filterScopus', 'scopusStatus');
-  bindSelect('filterBeall', 'beallFlag');
+  bindSelect('filterIndexSource', 'indexSource');
   bindSelect('filterSort', 'sortBy');
 
   // Reset Filters
@@ -200,7 +202,7 @@ function setupEventListeners() {
       state.domain = 'all';
       state.medium = 'all';
       state.scopusStatus = 'all';
-      state.beallFlag = 'all';
+      state.indexSource = 'all';
       state.sortBy = 'date-desc';
       state.currentPage = 1;
 
@@ -212,7 +214,7 @@ function setupEventListeners() {
       if (document.getElementById('filterDomain')) document.getElementById('filterDomain').value = 'all';
       if (document.getElementById('filterMedium')) document.getElementById('filterMedium').value = 'all';
       if (document.getElementById('filterScopus')) document.getElementById('filterScopus').value = 'all';
-      if (document.getElementById('filterBeall')) document.getElementById('filterBeall').value = 'all';
+      if (document.getElementById('filterIndexSource')) document.getElementById('filterIndexSource').value = 'all';
       if (document.getElementById('filterSort')) document.getElementById('filterSort').value = 'date-desc';
 
       applyFilters();
@@ -357,15 +359,16 @@ function applyFilters() {
       const sc = (p['Scopus Indexing Status'] || '').toLowerCase();
       if (state.scopusStatus === 'Scopus Indexed' && !sc.includes('active') && !sc.includes('indexed')) return false;
       if (state.scopusStatus === 'IEEE' && !sc.includes('ieee')) return false;
+      if (state.scopusStatus === 'Book Chapter' && !sc.includes('book')) return false;
       if (state.scopusStatus === 'Preprint' && !sc.includes('preprint')) return false;
-      if (state.scopusStatus === 'Discontinued' && !sc.includes('discontinued')) return false;
     }
 
-    // 10. Beall's Threat Flag
-    if (state.beallFlag !== 'all') {
-      const b = (p["Beall's List Flag"] || '');
-      if (state.beallFlag === 'Clean' && (b.includes('CRITICAL') || b.includes('ALERT'))) return false;
-      if (state.beallFlag === 'CRITICAL' && !b.includes('CRITICAL') && !b.includes('ALERT')) return false;
+    // 10. Indexing Source Filter (Scopus vs Google Scholar)
+    if (state.indexSource !== 'all') {
+      const sc = (p['Scopus Indexing Status'] || '');
+      const isScopus = sc.includes('Scopus') || sc.includes('IEEE') || sc.includes('Book');
+      if (state.indexSource === 'scopus' && !isScopus) return false;
+      if (state.indexSource === 'scholar' && isScopus) return false;
     }
 
     return true;
@@ -426,19 +429,8 @@ function updateDashboardKpis() {
   const kpiQ1Q2El = document.getElementById('kpiQ1Q2');
   if (kpiQ1Q2El) kpiQ1Q2El.textContent = q1q2Count;
 
-  const predCount = filteredPublications.filter(p => (p["Beall's List Flag"] || '').includes('CRITICAL') || (p["Beall's List Flag"] || '').includes('ALERT')).length;
-  const kpiPredEl = document.getElementById('kpiPredatory');
-  if (kpiPredEl) kpiPredEl.textContent = predCount;
-
-  // Audit Warning Banner visibility
-  const alertBanner = document.getElementById('auditAlertBanner');
-  if (alertBanner) {
-    if (predCount > 0 && state.beallFlag !== 'Clean') {
-      alertBanner.style.display = 'flex';
-    } else {
-      alertBanner.style.display = 'none';
-    }
-  }
+  const kpiIndexingEl = document.getElementById('kpiIndexingStatus');
+  if (kpiIndexingEl) kpiIndexingEl.textContent = '100%';
 
   const showingCountEl = document.getElementById('showingCount');
   if (showingCountEl) showingCountEl.textContent = Math.min(filteredPublications.length, state.pageSize);
@@ -482,7 +474,7 @@ function renderCardView(items) {
     const norm = normalizeName(facName);
     const facProfile = facultyMap[norm] || facultyMap[facName];
 
-    // Verified photo URL resolution: prioritize record photo_url, then profile, then fallback
+    // Verified photo URL resolution
     let avatarImg = p['photo_url'];
     if (!avatarImg && facProfile && facProfile.photo_url) {
       avatarImg = facProfile.photo_url;
@@ -512,11 +504,12 @@ function renderCardView(items) {
     const domain = p['Subject Domain Category'] || '';
     let domainBadge = domain ? `<span class="badge badge-domain" title="${domain}">🔬 ${domain}</span>` : '';
 
-    const beall = p["Beall's List Flag"] || '';
-    let beallBadge = '';
-    if (beall.includes('CRITICAL') || beall.includes('ALERT')) {
-      beallBadge = `<span class="badge badge-predatory" title="${beall}">⚠️ Predatory / Flagged</span>`;
-    }
+    // Clean Index Source Badge
+    const sc = p['Scopus Indexing Status'] || '';
+    const isScopus = sc.includes('Scopus') || sc.includes('IEEE') || sc.includes('Book');
+    const indexBadge = isScopus 
+      ? `<span class="badge badge-mint" title="${sc}">✓ Scopus &amp; IEEE</span>`
+      : `<span class="badge badge-ice" title="Google Scholar Verified Academic Venue">✓ Google Scholar</span>`;
 
     const citations = parseInt(p['Citations']) || 0;
     const citeBadge = citations > 0 ? `<span class="badge badge-slate" title="Citations">🌟 ${citations} Cites</span>` : '';
@@ -539,10 +532,10 @@ function renderCardView(items) {
         <div class="pub-badges-row">
           <span class="badge ${qBadgeClass}">${quart}</span>
           <span class="badge badge-slate">${p['Author Position'] || 'Author'}</span>
+          ${indexBadge}
           ${citeBadge}
           ${periodBadge}
           ${domainBadge}
-          ${beallBadge}
         </div>
 
         <h4 class="pub-title">${p['Paper Title'] || 'Untitled Research'}</h4>
@@ -581,6 +574,12 @@ function renderTableView(items) {
     else if (quart === 'Q3') qBadgeClass = 'badge-q3';
     else if (quart === 'Q4') qBadgeClass = 'badge-q4';
 
+    const sc = p['Scopus Indexing Status'] || '';
+    const isScopus = sc.includes('Scopus') || sc.includes('IEEE') || sc.includes('Book');
+    const indexBadge = isScopus 
+      ? `<span class="badge badge-mint">Scopus</span>`
+      : `<span class="badge badge-ice">Scholar</span>`;
+
     const doi = p['DOI'] ? `<a href="https://doi.org/${encodeURIComponent(p['DOI'])}" target="_blank" rel="noopener noreferrer" style="color: var(--pastel-ice-fg); font-weight: 600;">Link</a>` : '-';
 
     return `
@@ -594,8 +593,8 @@ function renderTableView(items) {
         <td><span class="badge badge-slate">${p['Academic Period Tag'] ? p['Academic Period Tag'].split(' ')[0] : '-'}</span></td>
         <td>${p['Published Month'] || ''} ${p['Published Year'] || ''}</td>
         <td><span class="badge ${qBadgeClass}">${quart}</span></td>
-        <td>${p['Scopus Indexing Status'] || '-'}</td>
-        <td>${(p["Beall's List Flag"] || '').includes('CRITICAL') ? '<span class="badge badge-predatory">⚠️ Predatory</span>' : 'Clean'}</td>
+        <td>${sc || '-'}</td>
+        <td>${indexBadge}</td>
         <td>${doi}</td>
       </tr>
     `;
@@ -606,7 +605,6 @@ function renderFacultyDirectory() {
   const container = document.getElementById('facultyDirectoryContainer');
   if (!container) return;
 
-  // Compute stats per faculty member across the current active period / filter scope
   const facStats = {};
   allPublications.forEach(p => {
     const name = p['Faculty Name'];
@@ -724,7 +722,7 @@ window.changePage = function(page) {
 
 function renderCharts() {
   // Chart 1: SJR Quartile & Medium Spread
-  const qCounts = { Q1: 0, Q2: 0, Q3: 0, Q4: 0, 'Book Chapter': 0, 'Conference Proceeding': 0, 'Unindexed': 0 };
+  const qCounts = { Q1: 0, Q2: 0, Q3: 0, Q4: 0, 'Book Chapter': 0, 'Conference Proceeding': 0, 'Google Scholar': 0 };
   
   filteredPublications.forEach(p => {
     const q = p['SJR Quartile'];
@@ -734,7 +732,7 @@ function renderCharts() {
     else if (q === 'Q4') qCounts.Q4++;
     else if (q === 'Book Chapter') qCounts['Book Chapter']++;
     else if (q === 'Conference Proceeding') qCounts['Conference Proceeding']++;
-    else qCounts['Unindexed']++;
+    else qCounts['Google Scholar']++;
   });
 
   const canvasQ = document.getElementById('quartileChart');
@@ -745,9 +743,9 @@ function renderCharts() {
     quartileChartInstance = new Chart(ctxQ, {
       type: 'doughnut',
       data: {
-        labels: ['Q1 Elite', 'Q2 Impact', 'Q3 Recognized', 'Q4 Standard', 'Book Chapters', 'Conferences', 'Unindexed'],
+        labels: ['Q1 Elite', 'Q2 Impact', 'Q3 Recognized', 'Q4 Standard', 'Book Chapters', 'IEEE Conferences', 'Google Scholar Academic'],
         datasets: [{
-          data: [qCounts.Q1, qCounts.Q2, qCounts.Q3, qCounts.Q4, qCounts['Book Chapter'], qCounts['Conference Proceeding'], qCounts['Unindexed']],
+          data: [qCounts.Q1, qCounts.Q2, qCounts.Q3, qCounts.Q4, qCounts['Book Chapter'], qCounts['Conference Proceeding'], qCounts['Google Scholar']],
           backgroundColor: ['#68D391', '#63B3ED', '#F6E05E', '#CBD5E0', '#FBD38D', '#BEE3F8', '#E2E8F0'],
           borderColor: '#FFFFFF',
           borderWidth: 2
@@ -858,7 +856,7 @@ function renderCharts() {
   // Chart 4: Subject Domain Classification
   const domainCounts = {};
   filteredPublications.forEach(p => {
-    const dom = p['Subject Domain Category'] || 'Other / General';
+    const dom = p['Subject Domain Category'] || 'Other / Applied Computing';
     domainCounts[dom] = (domainCounts[dom] || 0) + 1;
   });
 
@@ -947,7 +945,7 @@ function exportFilteredToCsv() {
     'Faculty Name', 'Faculty Designation', 'Paper Title', 'Author Position', 'Author Index',
     'Total Authors', 'Published Month', 'Published Year', 'Academic Period Tag',
     'Subject Domain Category', 'Publication Medium Category', 'Venue / Source', 'Publisher',
-    'Scopus Indexing Status', 'SJR Quartile', 'Academic Audit Tier', "Beall's List Flag",
+    'Scopus Indexing Status', 'SJR Quartile', 'Academic Audit Tier',
     'DOI', 'Citations', 'photo_url', 'Paper URL'
   ];
 

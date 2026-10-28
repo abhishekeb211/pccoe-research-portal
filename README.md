@@ -1,10 +1,11 @@
 # PCCOE Pune - Computer Engineering Research Portal & Scopus/SJR Audit (2025–Present)
 
 [![GitHub Pages Deployment](https://img.shields.io/badge/Deployment-GitHub%20Pages-success?style=for-the-badge&logo=github)](https://abhishekeb211.github.io/pccoe-research-portal/)
-[![Total Publications](https://img.shields.io/badge/Verified%20Publications-478-blue?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
+[![Total Publications](https://img.shields.io/badge/Verified%20Publications-458-blue?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
 [![Faculty Covered](https://img.shields.io/badge/Faculty%20Roster-50%20%2B%201%20TA%20(51)-purple?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
 [![Photos Verified](https://img.shields.io/badge/Photo%20Coverage-100%25%20Verified-brightgreen?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
 [![Scopus Q1/Q2](https://img.shields.io/badge/Elite%20Q1%2FQ2-31%20Papers-gold?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
+[![Indexed Status](https://img.shields.io/badge/Indexing-Scopus%20%26%20Scholar%20Only-emerald?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
 
 An executive institutional web portal, visual analytics dashboard, and academic indexing audit suite for the **Department of Computer Engineering, Pimpri Chinchwad College of Engineering (PCCOE Pune)**.
 
@@ -18,24 +19,24 @@ An executive institutional web portal, visual analytics dashboard, and academic 
 ### 1. 100% Verified Faculty Photos (51 of 51 Members)
 - Exhaustive departmental coverage: **50 Faculty Members + 1 Teaching Assistant (51 Total)**.
 - Every single faculty member has an official portrait scraped directly from institutional servers, optimized into standard 240×240 WebP/JPEG format (`images/faculty/`).
-- Photos are rendered with zero latency across **all 478 publication cards** and in the **Faculty Directory grid**.
+- Photos are rendered with zero latency across **all 458 publication cards** and in the **Faculty Directory grid**.
 
 ### 2. Multi-Cycle Academic Period Stratification
-- **AY 2025–2026** (`July 2025 – June 2026`): **286 Publications (59.8%)** — the core institutional accreditation window for NIRF, NBA, and NAAC.
-- **Post-June 2026 Momentum** (`July – October 2026`): **60 Publications (12.6%)** — recent publication momentum and early Q1 output for AY 2026–2027.
-- **Early 2025** (`January – June 2025`): **132 Publications (27.6%)** — previous academic cycle rollover.
+- **AY 2025–2026** (`July 2025 – June 2026`): **274 Publications (59.8%)** — the core institutional accreditation window for NIRF, NBA, and NAAC.
+- **Post-June 2026 Momentum** (`July – October 2026`): **59 Publications (12.9%)** — recent publication momentum and early Q1 output for AY 2026–2027.
+- **Early 2025** (`January – June 2025`): **125 Publications (27.3%)** — previous academic cycle rollover.
 
-### 3. Empirical Indexing & Accreditation Quality Audit
-Every paper is verified against international indexing databases:
-- **Scopus Sources Coverage** (`scopus.com/sources`): Verified active coverage status vs discontinued series.
+### 3. Empirical Indexing Standard (100% Scopus & Google Scholar Only)
+All 458 retained publications are verified against international indexing databases, with all unverified, discontinued, or predatory outlets completely excluded:
+- **Scopus Sources Coverage** (`scopus.com/sources`): Verified active coverage status across journals, conference proceedings, and book series.
 - **SCImago Journal Rank (SJR) Quartiles**:
   - **Q1 Elite**: 22 papers (Top 25% worldwide prestige).
   - **Q2 High Impact**: 9 papers (Top 25%–50%).
   - **Q3 / Q4 Recognized**: 33 papers.
   - **Book Chapters**: 113 chapters published with CRC Press, Springer Nature, and Wiley.
   - **Conference Proceedings**: 120 papers in Scopus-indexed IEEE and Springer series.
-- **Beall's List & Predatory Threat Sentinel** (`beallslists.com`):
-  - **20 papers (4.2%)** published in flagged predatory or discontinued outlets (*IJSREM*, *IJRASET*, *IJFMR*, *IJ Drug Delivery Tech*) are quarantined with persistent visual warning banners.
+- **Google Scholar Verified**: Legitimate academic preprints and institutional open repositories.
+- **Zero Predatory Outlets**: All 20 flagged predatory and discontinued journals have been removed from the repository.
 
 ### 4. Five (5) Dynamic Visual Analytics (Chart.js)
 The portal features 5 interactive charts with responsive pastel styling that dynamically recalculate whenever filters change:

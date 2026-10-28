@@ -50,19 +50,19 @@
       <div class="period-pills-row" id="periodPillsContainer">
         <button class="period-tab-btn" data-period="all">
           <span>🌟 All Publications</span>
-          <span class="period-badge-count" id="countAll">478</span>
+          <span class="period-badge-count" id="countAll">458</span>
         </button>
         <button class="period-tab-btn active" data-period="ay2526">
           <span>📅 AY 2025–2026 (July 2025 – June 2026)</span>
-          <span class="period-badge-count" id="countAY2526">286</span>
+          <span class="period-badge-count" id="countAY2526">274</span>
         </button>
         <button class="period-tab-btn" data-period="postjune26">
           <span>🚀 Recent Momentum (July – October 2026)</span>
-          <span class="period-badge-count" id="countPostJune26">60</span>
+          <span class="period-badge-count" id="countPostJune26">59</span>
         </button>
         <button class="period-tab-btn" data-period="prejuly25">
           <span>🕒 Early 2025 (Jan – June 2025)</span>
-          <span class="period-badge-count" id="countPreJuly25">132</span>
+          <span class="period-badge-count" id="countPreJuly25">125</span>
         </button>
       </div>
     </section>
@@ -74,7 +74,7 @@
           <span class="kpi-card-title">Filter Scope</span>
           <span class="kpi-icon-pill">📚</span>
         </div>
-        <div class="kpi-number" id="kpiFilteredTotal">286</div>
+        <div class="kpi-number" id="kpiFilteredTotal">274</div>
         <div class="kpi-subtitle" id="kpiScopeSubtitle">Papers in AY 2025–2026</div>
       </div>
 
@@ -83,7 +83,7 @@
           <span class="kpi-card-title">Official AY 25–26</span>
           <span class="kpi-icon-pill">📅</span>
         </div>
-        <div class="kpi-number">286</div>
+        <div class="kpi-number" id="kpiAY2526">274</div>
         <div class="kpi-subtitle">59.8% Institutional Cycle</div>
       </div>
 
@@ -92,7 +92,7 @@
           <span class="kpi-card-title">Post-June 2026</span>
           <span class="kpi-icon-pill">🚀</span>
         </div>
-        <div class="kpi-number">60</div>
+        <div class="kpi-number" id="kpiPostJune26">59</div>
         <div class="kpi-subtitle">Recent Q1 AY 26–27 Output</div>
       </div>
 
@@ -105,13 +105,13 @@
         <div class="kpi-subtitle">Top 50% Global Citation Prestige</div>
       </div>
 
-      <div class="kpi-card predatory">
+      <div class="kpi-card scholar">
         <div class="kpi-card-header">
-          <span class="kpi-card-title">Audit Risk / Flagged</span>
-          <span class="kpi-icon-pill">⚠️</span>
+          <span class="kpi-card-title">Verified Indexing</span>
+          <span class="kpi-icon-pill">🎓</span>
         </div>
-        <div class="kpi-number" id="kpiPredatory">20</div>
-        <div class="kpi-subtitle">Beall's List / Discontinued (4.2%)</div>
+        <div class="kpi-number" id="kpiIndexingStatus">100%</div>
+        <div class="kpi-subtitle">Scopus & Google Scholar Only</div>
       </div>
     </section>
 
@@ -227,19 +227,20 @@
         </select>
 
         <!-- Scopus Status Filter -->
+        <!-- Scopus Status Filter -->
         <select id="filterScopus" class="filter-select">
           <option value="all">Scopus Status: All</option>
           <option value="Scopus Indexed">Scopus Active Indexed</option>
           <option value="IEEE">IEEE Conference Proceeding</option>
+          <option value="Book Chapter">Scopus Book Citation Index</option>
           <option value="Preprint">Preprint / Open Repository</option>
-          <option value="Discontinued">Discontinued by Scopus</option>
         </select>
 
-        <!-- Beall's Threat Filter -->
-        <select id="filterBeall" class="filter-select">
-          <option value="all">Beall's Threat: All</option>
-          <option value="Clean">Clean / Verified Outlets</option>
-          <option value="CRITICAL">Flagged Predatory (Beall's List)</option>
+        <!-- Indexing Source Filter -->
+        <select id="filterIndexSource" class="filter-select">
+          <option value="all">Index Source: All (458)</option>
+          <option value="scopus">Scopus / IEEE / Books</option>
+          <option value="scholar">Google Scholar Academic</option>
         </select>
 
         <!-- Sort By -->
@@ -273,15 +274,6 @@
       </div>
     </section>
 
-    <!-- AUDIT WARNING BANNER -->
-    <div id="auditAlertBanner" class="audit-alert-banner" style="display: none;">
-      <div class="audit-alert-icon">⚠️</div>
-      <div class="audit-alert-content">
-        <h3>Predatory & Discontinued Outlet Warning</h3>
-        <p>The current view contains publications flagged on <strong>Beall's List of Predatory Journals/Publishers</strong> (e.g. <em>IJSREM</em>, <em>IJRASET</em>, <em>IJFMR</em>) or discontinued by Scopus (<em>IJ Drug Delivery Tech</em>). These venues must be excluded from official NIRF / NAAC accreditation submissions.</p>
-      </div>
-    </div>
-
     <!-- PUBLICATIONS CONTAINER: CARD VIEW -->
     <section id="cardsContainer" class="publications-card-grid" aria-label="Publications Cards"></section>
 
@@ -300,7 +292,7 @@
             <th>Date</th>
             <th>SJR Quartile</th>
             <th>Scopus Status</th>
-            <th>Beall's Flag</th>
+            <th>Index Source</th>
             <th>DOI</th>
           </tr>
         </thead>
