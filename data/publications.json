@@ -7408,13 +7408,13 @@
     "Scopus Indexing Status": "Scopus Indexed (Active)",
     "Scopus Coverage Years": "",
     "Scopus Source ID": "19700182903",
-    "SJR Quartile": "Q4",
+    "SJR Quartile": "Q3",
     "SJR Score": "",
     "Source H-Index": "",
     "Canonical ISSN / eISSN": "18173195, 19928645",
     "Beall's List Flag": "",
     "Conference Series Legitimacy": "",
-    "Academic Audit Tier": "Tier 2A (Scopus Q4)",
+    "Academic Audit Tier": "Tier 2A (Scopus Q3)",
     "photo_url": "images/faculty/live_10_Dr._Srinivas_Ambala.jpg",
     "Academic Period Tag": "",
     "Verification Evidence": "FACULTY_INCENTIVE_CLAIM",
@@ -7426,7 +7426,7 @@
     "Publication Fee": "Paid",
     "Incentive Application Date": "7/29/2026",
     "WoS Profile URL": "",
-    "Quartile Proof URL": "https://www.scopus.com/pages/feedback/author/review-profile?authorIds=57944959200"
+    "Quartile Proof URL": "https://www.scopus.com/sourceid/19700182903"
   },
   {
     "Faculty Name": "Prof. Dr. Sudeep D. Thepade",
@@ -7475,7 +7475,7 @@
     "Publication Fee": "Unpaid",
     "Incentive Application Date": "7/13/2026",
     "WoS Profile URL": "https://www.webofscience.com/wos/author/record/80203",
-    "Quartile Proof URL": "https://www.scopus.com/sources.uri"
+    "Quartile Proof URL": "https://www.scopus.com/sourceid/21100211768"
   },
   {
     "Faculty Name": "Prof. Dr. Sudeep D. Thepade",
@@ -7524,7 +7524,7 @@
     "Publication Fee": "Unpaid",
     "Incentive Application Date": "7/13/2026",
     "WoS Profile URL": "https://www.webofscience.com/wos/author/record/80203",
-    "Quartile Proof URL": "https://www.scopus.com/sources.uri"
+    "Quartile Proof URL": "https://www.scopus.com/sourceid/21100211768"
   },
   {
     "Faculty Name": "Dr. Sarika T. Deokate",
@@ -7554,7 +7554,7 @@
     "Faculty Status": "Active",
     "Scopus Indexing Status": "Scopus Indexed (Active)",
     "Scopus Coverage Years": "",
-    "Scopus Source ID": "",
+    "Scopus Source ID": "21101207446",
     "SJR Quartile": "Q2",
     "SJR Score": "",
     "Source H-Index": "",
@@ -7573,7 +7573,7 @@
     "Incentive Author Position": "",
     "Publication Fee": "",
     "Incentive Application Date": "",
-    "Quartile Proof URL": ""
+    "Quartile Proof URL": "https://www.scopus.com/sourceid/21101207446"
   },
   {
     "Faculty Name": "Dr. Sarika T. Deokate",
@@ -7603,7 +7603,7 @@
     "Faculty Status": "Active",
     "Scopus Indexing Status": "Scopus Indexed (Active)",
     "Scopus Coverage Years": "",
-    "Scopus Source ID": "",
+    "Scopus Source ID": "21101215114",
     "SJR Quartile": "Q1",
     "SJR Score": "",
     "Source H-Index": "",
@@ -7622,7 +7622,7 @@
     "Incentive Author Position": "",
     "Publication Fee": "",
     "Incentive Application Date": "",
-    "Quartile Proof URL": ""
+    "Quartile Proof URL": "https://www.scopus.com/sourceid/21101215114"
   },
   {
     "Faculty Name": "Prof. Dr. Sudeep D. Thepade",
@@ -7671,7 +7671,7 @@
     "Publication Fee": "Paid",
     "Incentive Application Date": "7/13/2026",
     "WoS Profile URL": "https://www.webofscience.com/wos/author/record/80203",
-    "Quartile Proof URL": "https://www.scopus.com/sources.uri"
+    "Quartile Proof URL": "https://www.scopus.com/sourceid/21100820054"
   },
   {
     "Faculty Name": "Prof. Dr. Sudeep D. Thepade",
@@ -7751,13 +7751,13 @@
     "Scopus Indexing Status": "Scopus Indexed (Active)",
     "Scopus Coverage Years": "",
     "Scopus Source ID": "19400158593",
-    "SJR Quartile": "Q2",
+    "SJR Quartile": "Q1",
     "SJR Score": "",
     "Source H-Index": "",
     "Canonical ISSN / eISSN": "18685145, 18685137",
     "Beall's List Flag": "",
     "Conference Series Legitimacy": "",
-    "Academic Audit Tier": "Tier 1B (Scopus Q2)",
+    "Academic Audit Tier": "Tier 1A (Scopus Q1)",
     "photo_url": "images/faculty/live_16_Dr._Aparna_Joshi.jpg",
     "Academic Period Tag": "",
     "Verification Evidence": "FACULTY_INCENTIVE_CLAIM",
@@ -7769,7 +7769,7 @@
     "Publication Fee": "Paid",
     "Incentive Application Date": "8/7/2026",
     "WoS Profile URL": "",
-    "Quartile Proof URL": ""
+    "Quartile Proof URL": "https://www.scopus.com/sourceid/19400158593"
   },
   {
     "Faculty Name": "Dr. Aparna Joshi",
@@ -7799,7 +7799,7 @@
     "Faculty Status": "Active",
     "Scopus Indexing Status": "Scopus Indexed (Active)",
     "Scopus Coverage Years": "",
-    "Scopus Source ID": "",
+    "Scopus Source ID": "21101215114",
     "SJR Quartile": "Q1",
     "SJR Score": "",
     "Source H-Index": "",
@@ -7818,6 +7818,6 @@
     "Publication Fee": "Paid",
     "Incentive Application Date": "8/7/2026",
     "WoS Profile URL": "",
-    "Quartile Proof URL": ""
+    "Quartile Proof URL": "https://www.scopus.com/sourceid/21101215114"
   }
 ]
