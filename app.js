@@ -21,10 +21,28 @@ const state = {
   scopusStatus: 'all',
   indexSource: 'all', // 'all', 'scopus', 'scholar'
   sortBy: 'date-desc',
-  viewMode: 'cards', // 'cards', 'table', 'directory'
+  viewMode: 'cards', // 'cards', 'table', 'directory', 'profile'
+  bucket: 'all',
+  profileFaculty: null,
+  profileSection: 'all',
+  analyticsSortKey: 'total',
+  analyticsSortDir: 'desc',
   currentPage: 1,
   pageSize: 24
 };
+
+const BUCKETS = [
+  { id: 'q1', label: 'Q1 journals', short: 'Q1' },
+  { id: 'q2', label: 'Q2 journals', short: 'Q2' },
+  { id: 'q3', label: 'Q3 journals', short: 'Q3' },
+  { id: 'q4', label: 'Q4 journals', short: 'Q4' },
+  { id: 'non_scopus_journal', label: 'Non-Scopus journals', short: 'Non-Scopus journals' },
+  { id: 'scopus_conference', label: 'Scopus conferences', short: 'Scopus conferences' },
+  { id: 'non_scopus_conference', label: 'Non-Scopus conferences', short: 'Non-Scopus conferences' },
+  { id: 'book_chapter', label: 'Book chapters', short: 'Book chapters' }
+];
+
+let periodPublications = [];
 
 // Chart instances for dynamic disposal and redraw
 let quartileChartInstance = null;
@@ -43,6 +61,98 @@ function doiHref(doi) {
 function scopusConfirmed(record) {
   const status = String(record['Scopus Indexing Status'] || '').toLowerCase();
   return status.includes('scopus indexed') && !status.includes('unconfirmed');
+}
+
+function esc(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[ch]));
+}
+
+function paperBucket(record) {
+  const medium = record['Publication Medium Category'] || '';
+  if (medium === 'Book Chapter') return 'book_chapter';
+  if (medium === 'Conference Proceeding') {
+    return scopusConfirmed(record) ? 'scopus_conference' : 'non_scopus_conference';
+  }
+  if (scopusConfirmed(record)) {
+    const quartile = record['SJR Quartile'];
+    if (quartile === 'Q1' || quartile === 'Q2' || quartile === 'Q3' || quartile === 'Q4') {
+      return quartile.toLowerCase();
+    }
+  }
+  return 'non_scopus_journal';
+}
+
+function emptyStats() {
+  return {
+    q1: 0, q2: 0, q3: 0, q4: 0,
+    non_scopus_journal: 0,
+    scopus_conference: 0,
+    non_scopus_conference: 0,
+    book_chapter: 0,
+    journals: 0,
+    conferences: 0,
+    total: 0
+  };
+}
+
+function addTotals(stats) {
+  stats.journals = stats.q1 + stats.q2 + stats.q3 + stats.q4 + stats.non_scopus_journal;
+  stats.conferences = stats.scopus_conference + stats.non_scopus_conference;
+  stats.total = stats.journals + stats.conferences + stats.book_chapter;
+  return stats;
+}
+
+function tally(papers) {
+  const stats = emptyStats();
+  papers.forEach((paper) => {
+    stats[paperBucket(paper)] += 1;
+  });
+  return addTotals(stats);
+}
+
+function matchesPeriod(paper) {
+  const tag = paper['Academic Period Tag'];
+  if (state.activePeriod === 'ay2526') return tag === 'July 2025 - June 2026 (AY 2025-26)';
+  if (state.activePeriod === 'postjune26') return tag === 'July 2026 - October 2026 (Post-June 2026)';
+  if (state.activePeriod === 'prejuly25') return tag === 'Jan 2025 - June 2025 (H2 Prev AY)';
+  return true;
+}
+
+function doiLabel(doi) {
+  return String(doi || '').trim()
+    .replace(/^https?:\/\/(dx\.)?doi\.org\//i, '')
+    .replace(/^doi:/i, '');
+}
+
+function profileHref(url) {
+  const value = String(url || '').trim().replace(/^https?:\s+/i, '');
+  if (!/^https?:\/\//i.test(value)) return '';
+  return value;
+}
+
+function resolveFacultyName(name) {
+  const raw = String(name || '').trim();
+  if (!raw) return '';
+  const names = facultyList.map((faculty) => faculty.Name || faculty.name).filter(Boolean);
+  return names.find((item) => item === raw)
+    || names.find((item) => normalizeName(item) === normalizeName(raw))
+    || raw;
+}
+
+function facultyNameFromHash() {
+  const match = (location.hash || '').match(/^#faculty\/(.+)$/);
+  if (!match) return '';
+  try {
+    return resolveFacultyName(decodeURIComponent(match[1]));
+  } catch (error) {
+    return resolveFacultyName(match[1]);
+  }
 }
 
 // Initialize on DOM Ready
@@ -82,6 +192,7 @@ async function initApp() {
 
     // 5. Initial Filter & Render
     applyFilters();
+    syncFromHash();
 
   } catch (error) {
     console.error('Failed to initialize application:', error);
@@ -266,9 +377,18 @@ function setupEventListeners() {
       exportFilteredToCsv();
     });
   }
+
+  document.addEventListener('click', handlePortalClick);
+  window.addEventListener('hashchange', syncFromHash);
+  window.addEventListener('popstate', syncFromHash);
 }
 
 function setViewMode(mode) {
+  if (mode !== 'profile' && state.profileFaculty) {
+    state.profileFaculty = null;
+    const nextUrl = location.pathname + location.search;
+    if (location.hash) history.pushState(null, '', nextUrl);
+  }
   state.viewMode = mode;
   const cardsBtn = document.getElementById('viewCardsBtn');
   const tableBtn = document.getElementById('viewTableBtn');
@@ -278,40 +398,30 @@ function setViewMode(mode) {
   const tableContainer = document.getElementById('tableContainer');
   const dirContainer = document.getElementById('facultyDirectoryContainer');
   const paginationNav = document.getElementById('paginationNav');
+  const profile = document.getElementById('facultyProfile');
+  const chips = document.getElementById('bucketChips');
 
   if (cardsBtn) cardsBtn.classList.toggle('active', mode === 'cards');
   if (tableBtn) tableBtn.classList.toggle('active', mode === 'table');
   if (dirBtn) dirBtn.classList.toggle('active', mode === 'directory');
 
-  if (mode === 'cards') {
-    if (cardsContainer) cardsContainer.style.display = 'grid';
-    if (tableContainer) tableContainer.style.display = 'none';
-    if (dirContainer) dirContainer.style.display = 'none';
-    if (paginationNav) paginationNav.style.display = 'flex';
-    renderPublications();
-  } else if (mode === 'table') {
-    if (cardsContainer) cardsContainer.style.display = 'none';
-    if (tableContainer) tableContainer.style.display = 'block';
-    if (dirContainer) dirContainer.style.display = 'none';
-    if (paginationNav) paginationNav.style.display = 'flex';
-    renderPublications();
-  } else if (mode === 'directory') {
-    if (cardsContainer) cardsContainer.style.display = 'none';
-    if (tableContainer) tableContainer.style.display = 'none';
-    if (dirContainer) dirContainer.style.display = 'grid';
-    if (paginationNav) paginationNav.style.display = 'none';
-    renderFacultyDirectory();
-  }
+  if (cardsContainer) cardsContainer.style.display = mode === 'cards' ? 'block' : 'none';
+  if (tableContainer) tableContainer.style.display = mode === 'table' ? 'block' : 'none';
+  if (dirContainer) dirContainer.style.display = mode === 'directory' ? 'grid' : 'none';
+  if (paginationNav) paginationNav.style.display = mode === 'table' ? 'flex' : 'none';
+  if (profile) profile.hidden = mode !== 'profile';
+  if (chips) chips.hidden = mode === 'directory' || mode === 'profile';
+
+  if (mode === 'cards' || mode === 'table') renderPublications();
+  else if (mode === 'directory') renderFacultyDirectory();
+  else if (mode === 'profile') renderFacultyProfile();
+  if (mode === 'cards' || mode === 'table') renderBucketChips();
 }
 
 function applyFilters() {
-  filteredPublications = allPublications.filter(p => {
-    // 1. Period Filter
-    if (state.activePeriod === 'ay2526' && p['Academic Period Tag'] !== 'July 2025 - June 2026 (AY 2025-26)') return false;
-    if (state.activePeriod === 'postjune26' && p['Academic Period Tag'] !== 'July 2026 - October 2026 (Post-June 2026)') return false;
-    if (state.activePeriod === 'prejuly25' && p['Academic Period Tag'] !== 'Jan 2025 - June 2025 (H2 Prev AY)') return false;
-
-    // 2. Faculty Member
+  periodPublications = allPublications.filter(matchesPeriod);
+  filteredPublications = periodPublications.filter(p => {
+    // 1. Faculty Member
     if (state.faculty !== 'all') {
       const pFac = p['Faculty Name'] || '';
       if (pFac !== state.faculty && normalizeName(pFac) !== normalizeName(state.faculty)) {
@@ -414,12 +524,16 @@ function applyFilters() {
 
   // Update 5 Interactive Charts
   renderCharts();
+  renderFacultyAnalytics();
 
   // Render view
   if (state.viewMode === 'directory') {
     renderFacultyDirectory();
+  } else if (state.viewMode === 'profile') {
+    renderFacultyProfile();
   } else {
     renderPublications();
+    renderBucketChips();
   }
 }
 
@@ -438,9 +552,9 @@ function updateDashboardKpis() {
     scopeSubEl.textContent = labels[state.activePeriod] || 'Matching Active Filters';
   }
 
-  const q1q2Count = filteredPublications.filter(p => p['SJR Quartile'] === 'Q1' || p['SJR Quartile'] === 'Q2').length;
+  const scopeStats = tally(filteredPublications);
   const kpiQ1Q2El = document.getElementById('kpiQ1Q2');
-  if (kpiQ1Q2El) kpiQ1Q2El.textContent = q1q2Count;
+  if (kpiQ1Q2El) kpiQ1Q2El.textContent = scopeStats.q1 + scopeStats.q2;
 
   const confirmed = filteredPublications.filter(scopusConfirmed).length;
   const kpiIndexingEl = document.getElementById('kpiIndexingStatus');
@@ -452,122 +566,32 @@ function updateDashboardKpis() {
   if (totalCountEl) totalCountEl.textContent = filteredPublications.length;
 }
 
-function renderPublications() {
-  const startIndex = (state.currentPage - 1) * state.pageSize;
-  const pageItems = filteredPublications.slice(startIndex, startIndex + state.pageSize);
-
-  const showingCountEl = document.getElementById('showingCount');
-  if (showingCountEl) showingCountEl.textContent = pageItems.length;
-
-  if (state.viewMode === 'cards') {
-    renderCardView(pageItems);
-  } else if (state.viewMode === 'table') {
-    renderTableView(pageItems);
-  }
-
-  renderPagination();
+function listedPapers() {
+  if (state.bucket === 'all') return filteredPublications;
+  return filteredPublications.filter((paper) => paperBucket(paper) === state.bucket);
 }
 
-function renderCardView(items) {
-  const container = document.getElementById('cardsContainer');
-  if (!container) return;
+function renderPublications() {
+  const source = listedPapers();
+  const showingCountEl = document.getElementById('showingCount');
+  const totalCountEl = document.getElementById('totalCount');
+  if (totalCountEl) totalCountEl.textContent = filteredPublications.length;
 
-  if (items.length === 0) {
-    container.innerHTML = `
-      <div style="grid-column: 1/-1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
-        <p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">No publications match the selected criteria.</p>
-        <p style="font-size: 0.9rem;">Try adjusting your search keywords, period tab, or dropdown filters.</p>
-      </div>
-    `;
+  if (state.viewMode === 'cards') {
+    if (showingCountEl) showingCountEl.textContent = source.length;
+    renderSectionedList(document.getElementById('cardsContainer'), source, false);
+    const nav = document.getElementById('paginationNav');
+    if (nav) nav.innerHTML = '';
     return;
   }
 
-  container.innerHTML = items.map(p => {
-    const facName = p['Faculty Name'] || 'PCCOE Faculty';
-    const facDesig = p['Faculty Designation'] || 'Faculty';
-    const norm = normalizeName(facName);
-    const facProfile = facultyMap[norm] || facultyMap[facName];
-
-    // Verified photo URL resolution
-    let avatarImg = p['photo_url'];
-    if (!avatarImg && facProfile && facProfile.photo_url) {
-      avatarImg = facProfile.photo_url;
-    }
-    if (!avatarImg) {
-      avatarImg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="%23CBD5E1"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-    }
-
-    // Badges
-    const quart = p['SJR Quartile'] || 'Not Ranked';
-    let qBadgeClass = 'badge-slate';
-    if (quart === 'Q1') qBadgeClass = 'badge-q1';
-    else if (quart === 'Q2') qBadgeClass = 'badge-q2';
-    else if (quart === 'Q3') qBadgeClass = 'badge-q3';
-    else if (quart === 'Q4') qBadgeClass = 'badge-q4';
-    else if (quart === 'Book Chapter') qBadgeClass = 'badge-book';
-    else if (quart === 'Conference Proceeding') qBadgeClass = 'badge-conf';
-
-    const periodTag = p['Academic Period Tag'] || '';
-    let periodBadge = '';
-    if (periodTag.includes('AY 2025-26')) {
-      periodBadge = `<span class="badge badge-ay">AY 2025–26</span>`;
-    } else if (periodTag.includes('Post-June 2026')) {
-      periodBadge = `<span class="badge badge-recent">Post-June 2026</span>`;
-    }
-
-    const domain = p['Subject Domain Category'] || '';
-    let domainBadge = domain ? `<span class="badge badge-domain" title="${domain}">🔬 ${domain}</span>` : '';
-
-    // Clean Index Source Badge
-    const sc = p['Scopus Indexing Status'] || '';
-    const indexBadge = scopusConfirmed(p)
-      ? `<span class="badge badge-mint" title="${sc}">Scopus indexed</span>`
-      : `<span class="badge badge-ice" title="${sc || 'No SCImago source match'}">${sc ? 'Not SCImago-confirmed' : 'Unverified venue'}</span>`;
-
-    const citations = parseInt(p['Citations']) || 0;
-    const citeBadge = citations > 0 ? `<span class="badge badge-slate" title="Citations">🌟 ${citations} Cites</span>` : '';
-
-    const doi = p['DOI'] || '';
-    const doiLink = doi ? `<a href="${doiHref(doi)}" target="_blank" rel="noopener noreferrer" class="pub-link-btn">DOI &rarr;</a>` : '';
-
-    const pubDate = p['Published Date'] || `${p['Published Month'] || ''} ${p['Published Year'] || ''}`;
-
-    return `
-      <article class="pub-card">
-        <div class="pub-card-top">
-          <img src="${avatarImg}" alt="${facName}" class="faculty-avatar" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'44\\' height=\\'44\\' viewBox=\\'0 0 24 24\\' fill=\\'%23CBD5E1\\'><path d=\\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\\'/></svg>'">
-          <div class="faculty-meta">
-            <h3 class="faculty-name">${facName}</h3>
-            <div class="faculty-desig">${facDesig}</div>
-          </div>
-        </div>
-
-        <div class="pub-badges-row">
-          <span class="badge ${qBadgeClass}">${quart}</span>
-          <span class="badge badge-slate">${p['Author Position'] || 'Author'}</span>
-          ${indexBadge}
-          ${citeBadge}
-          ${periodBadge}
-          ${domainBadge}
-        </div>
-
-        <h4 class="pub-title">${p['Paper Title'] || 'Untitled Research'}</h4>
-
-        <div class="pub-venue-group">
-          <div class="pub-venue-name">${p['Venue / Source'] || 'Academic Outlet'}</div>
-          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">
-            ${p['Publisher'] || ''} &bull; ${p['Publication Medium Category'] || 'Article'}
-          </div>
-        </div>
-
-        <div class="pub-details-footer">
-          <span>📅 ${pubDate}</span>
-          ${doiLink}
-        </div>
-      </article>
-    `;
-  }).join('');
+  const startIndex = (state.currentPage - 1) * state.pageSize;
+  const pageItems = source.slice(startIndex, startIndex + state.pageSize);
+  if (showingCountEl) showingCountEl.textContent = pageItems.length;
+  if (state.viewMode === 'table') renderTableView(pageItems);
+  renderPagination(source.length);
 }
+
 
 function renderTableView(items) {
   const tbody = document.getElementById('tableBody');
@@ -592,16 +616,19 @@ function renderTableView(items) {
       ? `<span class="badge badge-mint">Scopus indexed</span>`
       : `<span class="badge badge-ice">Not SCImago-confirmed</span>`;
 
-    const doi = p['DOI'] ? `<a href="${doiHref(p['DOI'])}" target="_blank" rel="noopener noreferrer" style="color: var(--pastel-ice-fg); font-weight: 600;">Link</a>` : '-';
+    const doiText = doiLabel(p['DOI']);
+    const doi = doiText
+      ? `<a href="${esc(doiHref(p['DOI']))}" target="_blank" rel="noopener noreferrer" style="color: var(--pastel-ice-fg); font-weight: 600;">${esc(doiText)}</a>`
+      : 'No DOI';
 
     return `
       <tr>
         <td>${startNum}</td>
-        <td><strong>${p['Faculty Name'] || '-'}</strong></td>
+        <td><button type="button" class="linkish" data-open-faculty="${esc(p['Faculty Name'] || '')}">${esc(p['Faculty Name'] || '-')}</button></td>
         <td>${p['Faculty Designation'] || '-'}</td>
         <td>${p['Author Position'] || '-'}</td>
-        <td style="max-width: 320px; font-weight: 600;">${p['Paper Title'] || '-'}</td>
-        <td style="max-width: 260px;">${p['Venue / Source'] || '-'}</td>
+        <td style="max-width: 320px; font-weight: 600;">${esc(p['Paper Title'] || '-')}</td>
+        <td style="max-width: 260px;">${esc(p['Venue / Source'] || '-')}</td>
         <td><span class="badge badge-slate">${p['Academic Period Tag'] ? p['Academic Period Tag'].split(' ')[0] : '-'}</span></td>
         <td>${p['Published Month'] || ''} ${p['Published Year'] || ''}</td>
         <td><span class="badge ${qBadgeClass}">${quart}</span></td>
@@ -616,81 +643,34 @@ function renderTableView(items) {
 function renderFacultyDirectory() {
   const container = document.getElementById('facultyDirectoryContainer');
   if (!container) return;
+  const stats = statsByFaculty(periodPublications);
+  const placeholder = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="%23CBD5E1"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
 
-  const facStats = {};
-  allPublications.forEach(p => {
-    const name = p['Faculty Name'];
-    if (!name) return;
-    if (!facStats[name]) {
-      facStats[name] = { total: 0, ay2526: 0, postJune: 0, q1q2: 0 };
-    }
-    facStats[name].total++;
-    const tag = p['Academic Period Tag'] || '';
-    if (tag.includes('AY 2025-26')) facStats[name].ay2526++;
-    if (tag.includes('Post-June 2026')) facStats[name].postJune++;
-    if (p['SJR Quartile'] === 'Q1' || p['SJR Quartile'] === 'Q2') facStats[name].q1q2++;
-  });
-
-  const list = facultyList.length > 0 ? [...facultyList] : Object.keys(facStats).map(n => ({ Name: n }));
-  list.sort((a, b) => (a.Name || a.name || '').localeCompare(b.Name || b.name || ''));
-
-  container.innerHTML = list.map(f => {
-    const name = f.Name || f.name;
-    const desig = f.Designation || f.designation || 'Faculty Member';
-    const st = facStats[name] || { total: 0, ay2526: 0, postJune: 0, q1q2: 0 };
-    const aoi = f['Area of Interest (AOI)'] || f.qualification || 'Computer Engineering & Applied Computing';
-    const photo = f.photo_url || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="%23CBD5E1"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-
+  container.innerHTML = sortedFacultyRows(stats).map((row) => {
+    const faculty = facultyRecord(row.name);
+    const photo = (faculty && faculty.photo_url) || placeholder;
+    const desig = (faculty && (faculty.Designation || faculty.designation)) || 'Faculty Member';
+    const aoi = (faculty && faculty['Area of Interest (AOI)']) || '';
     return `
-      <div class="faculty-profile-card">
-        <img src="${photo}" alt="${name}" class="profile-card-avatar" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'90\\' height=\\'90\\' viewBox=\\'0 0 24 24\\' fill=\\'%23CBD5E1\\'><path d=\\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\\'/></svg>'">
-        <h3 class="profile-card-name">${name}</h3>
-        <div class="profile-card-desig">${desig}</div>
-
-        <div class="profile-card-stats">
-          <div class="profile-stat-item">
-            <span class="profile-stat-number">${st.total}</span>
-            <span class="profile-stat-lbl">Total</span>
-          </div>
-          <div class="profile-stat-item">
-            <span class="profile-stat-number" style="color: var(--pastel-ice-fg);">${st.ay2526}</span>
-            <span class="profile-stat-lbl">AY 25–26</span>
-          </div>
-          <div class="profile-stat-item">
-            <span class="profile-stat-number" style="color: var(--pastel-mint-fg);">${st.q1q2}</span>
-            <span class="profile-stat-lbl">Q1/Q2</span>
-          </div>
-        </div>
-
-        <p style="font-size: 0.74rem; color: var(--text-muted); line-height: 1.35; max-height: 48px; overflow: hidden; margin-top: 0.25rem;">
-          ${aoi}
-        </p>
-
-        ${st.total > 0 ? `
-        <button class="btn-filter-faculty" onclick="filterByFaculty('${name.replace(/'/g, "\\'")}')">
-          View All ${st.total} Publications &rarr;
-        </button>
-        ` : `
-        <div style="font-size: 0.74rem; color: var(--text-muted); padding: 0.45rem; background: var(--bg-surface); border-radius: var(--radius-pill); border: 1px dashed var(--border-light); font-weight: 600; width: 100%;">
-          Unlinked on Dept Portal (0 Papers)
-        </div>
-        `}
-      </div>
+      <button type="button" class="faculty-profile-card" data-open-faculty="${esc(row.name)}">
+        <img src="${esc(photo)}" alt="" class="profile-card-avatar">
+        <h3 class="profile-card-name">${esc(row.name)}</h3>
+        <div class="profile-card-desig">${esc(desig)}</div>
+        ${miniStats(row.stats)}
+        <p class="profile-card-aoi">${esc(aoi)}</p>
+        <span class="btn-filter-faculty">View profile</span>
+      </button>
     `;
   }).join('');
 }
 
 window.filterByFaculty = function(facultyName) {
-  state.faculty = facultyName;
-  const select = document.getElementById('filterFaculty');
-  if (select) select.value = facultyName;
-  setViewMode('cards');
-  applyFilters();
-  window.scrollTo({ top: document.querySelector('.controls-bar').offsetTop - 80, behavior: 'smooth' });
+  openFacultyProfile(facultyName);
 };
 
-function renderPagination() {
-  const totalPages = Math.ceil(filteredPublications.length / state.pageSize);
+function renderPagination(totalItems) {
+  const total = totalItems == null ? filteredPublications.length : totalItems;
+  const totalPages = Math.ceil(total / state.pageSize);
   const nav = document.getElementById('paginationNav');
   if (!nav) return;
 
@@ -739,41 +719,32 @@ window.changePage = function(page) {
 };
 
 function renderCharts() {
-  // Chart 1: SJR Quartile & Medium Spread
-  const qCounts = { Q1: 0, Q2: 0, Q3: 0, Q4: 0, 'Book Chapter': 0, 'Conference Proceeding': 0, 'Not ranked': 0 };
-
-  filteredPublications.forEach(p => {
-    const q = p['SJR Quartile'];
-    if (q === 'Q1') qCounts.Q1++;
-    else if (q === 'Q2') qCounts.Q2++;
-    else if (q === 'Q3') qCounts.Q3++;
-    else if (q === 'Q4') qCounts.Q4++;
-    else if ((p['Publication Medium Category'] || '') === 'Book Chapter') qCounts['Book Chapter']++;
-    else if ((p['Publication Medium Category'] || '') === 'Conference Proceeding') qCounts['Conference Proceeding']++;
-    else qCounts['Not ranked']++;
-  });
-
+  const bucketStats = tally(filteredPublications);
   const canvasQ = document.getElementById('quartileChart');
   if (canvasQ) {
     const ctxQ = canvasQ.getContext('2d');
     if (quartileChartInstance) quartileChartInstance.destroy();
 
     quartileChartInstance = new Chart(ctxQ, {
-      type: 'doughnut',
+      type: 'bar',
       data: {
-        labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Book chapter (no quartile)', 'Conference (no quartile)', 'Not ranked in SCImago'],
+        labels: BUCKETS.map((bucket) => bucket.label),
         datasets: [{
-          data: [qCounts.Q1, qCounts.Q2, qCounts.Q3, qCounts.Q4, qCounts['Book Chapter'], qCounts['Conference Proceeding'], qCounts['Not ranked']],
-          backgroundColor: ['#68D391', '#63B3ED', '#F6E05E', '#CBD5E0', '#FBD38D', '#BEE3F8', '#E2E8F0'],
-          borderColor: '#FFFFFF',
-          borderWidth: 2
+          label: 'Publications',
+          data: BUCKETS.map((bucket) => bucketStats[bucket.id]),
+          backgroundColor: ['#137333', '#1A73E8', '#B06000', '#7627BB', '#64748B', '#004D40', '#0D47A1', '#D9381E'],
+          borderWidth: 0,
+          borderRadius: 4
         }]
       },
       options: {
+        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: "'Plus Jakarta Sans', sans-serif", size: 10 } } }
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, grid: { color: '#F1F5F9' }, ticks: { precision: 0 } },
+          y: { grid: { display: false }, ticks: { font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 } } }
         }
       }
     });
@@ -950,6 +921,301 @@ function renderCharts() {
         }
       }
     });
+  }
+}
+
+function facultyRecord(name) {
+  return facultyMap[name] || facultyMap[normalizeName(name)] || null;
+}
+
+function statsByFaculty(papers) {
+  const names = [];
+  const seen = new Set();
+  const addName = (name) => {
+    if (!name || seen.has(normalizeName(name))) return;
+    seen.add(normalizeName(name));
+    names.push(name);
+  };
+  facultyList.forEach((faculty) => addName(faculty.Name || faculty.name));
+  papers.forEach((paper) => addName(paper['Faculty Name']));
+
+  const stats = {};
+  names.forEach((name) => { stats[name] = emptyStats(); });
+  const keyFor = {};
+  names.forEach((name) => { keyFor[normalizeName(name)] = name; });
+  papers.forEach((paper) => {
+    const key = keyFor[normalizeName(paper['Faculty Name'])];
+    if (!key) return;
+    stats[key][paperBucket(paper)] += 1;
+  });
+  Object.values(stats).forEach(addTotals);
+  return stats;
+}
+
+function sortedFacultyRows(stats) {
+  const key = state.analyticsSortKey;
+  const dir = state.analyticsSortDir === 'asc' ? 1 : -1;
+  return Object.entries(stats).map(([name, row]) => ({ name, stats: row })).sort((a, b) => {
+    if (key === 'name') return dir * a.name.localeCompare(b.name);
+    const diff = (a.stats[key] || 0) - (b.stats[key] || 0);
+    if (diff !== 0) return dir * diff;
+    return a.name.localeCompare(b.name);
+  });
+}
+
+const ANALYTICS_COLUMNS = [
+  { key: 'name', label: 'Faculty' },
+  { key: 'q1', label: 'Q1' },
+  { key: 'q2', label: 'Q2' },
+  { key: 'q3', label: 'Q3' },
+  { key: 'q4', label: 'Q4' },
+  { key: 'non_scopus_journal', label: 'Non-Scopus journals' },
+  { key: 'scopus_conference', label: 'Scopus conferences' },
+  { key: 'non_scopus_conference', label: 'Non-Scopus conferences' },
+  { key: 'journals', label: 'Total journals' },
+  { key: 'conferences', label: 'Total conferences' },
+  { key: 'book_chapter', label: 'Book chapters' },
+  { key: 'total', label: 'Total' }
+];
+
+function renderFacultyAnalytics() {
+  const host = document.getElementById('facultyAnalytics');
+  if (!host) return;
+  const rows = sortedFacultyRows(statsByFaculty(periodPublications));
+  const head = ANALYTICS_COLUMNS.map((column) => {
+    const active = state.analyticsSortKey === column.key;
+    const arrow = active ? (state.analyticsSortDir === 'asc' ? ' ↑' : ' ↓') : '';
+    return `<th><button type="button" class="sort-btn${active ? ' active' : ''}" data-sort-key="${column.key}">${esc(column.label)}${arrow}</button></th>`;
+  }).join('');
+  const body = rows.map((row) => `
+    <tr data-open-faculty="${esc(row.name)}">
+      <td class="analytics-name">${esc(row.name)}</td>
+      ${ANALYTICS_COLUMNS.slice(1).map((column) => `<td class="num">${row.stats[column.key] || 0}</td>`).join('')}
+    </tr>
+  `).join('');
+  host.innerHTML = `<table class="analytics-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+function miniStats(stats) {
+  const cells = [
+    ['Q1', stats.q1], ['Q2', stats.q2], ['Q3', stats.q3], ['Q4', stats.q4],
+    ['Non-Scopus j.', stats.non_scopus_journal],
+    ['Scopus conf.', stats.scopus_conference],
+    ['Other conf.', stats.non_scopus_conference],
+    ['Journals', stats.journals],
+    ['Conferences', stats.conferences],
+    ['Books', stats.book_chapter],
+    ['Total', stats.total]
+  ];
+  return `<div class="mini-stats">${cells.map(([label, value]) => `
+    <div class="mini-stat"><span class="mini-stat-num">${value}</span><span class="mini-stat-lbl">${label}</span></div>
+  `).join('')}</div>`;
+}
+
+function renderBucketChips() {
+  const host = document.getElementById('bucketChips');
+  if (!host || host.hidden) return;
+  const stats = tally(filteredPublications);
+  const chip = (id, label, count) => `
+    <button type="button" class="bucket-chip${state.bucket === id ? ' active' : ''}" data-bucket="${id}" data-bucket-scope="list">
+      ${esc(label)} <span>${count}</span>
+    </button>`;
+  host.innerHTML = chip('all', 'All sections', stats.total) + BUCKETS.map((bucket) => chip(bucket.id, bucket.short, stats[bucket.id])).join('');
+}
+
+function renderPaperRow(paper) {
+  const bucket = paperBucket(paper);
+  const doiText = doiLabel(paper['DOI']);
+  const doiHtml = doiText
+    ? `<a class="doi-link" href="${esc(doiHref(paper['DOI']))}" target="_blank" rel="noopener noreferrer">${esc(doiText)}</a>`
+    : `<span class="doi-missing">No DOI</span>`;
+  const badges = [];
+  if (bucket === 'book_chapter' && ['Q1', 'Q2', 'Q3', 'Q4'].includes(paper['SJR Quartile'])) {
+    badges.push(`<span class="badge badge-q4">${esc(paper['SJR Quartile'])} series</span>`);
+  }
+  if (String(paper['Scopus Indexing Status'] || '').toLowerCase().includes('preprint')) {
+    badges.push('<span class="badge badge-slate">Preprint</span>');
+  }
+  if (bucket === 'non_scopus_conference') badges.push('<span class="badge badge-ice">Scopus unconfirmed</span>');
+  if (bucket === 'scopus_conference') badges.push('<span class="badge badge-mint">Scopus indexed</span>');
+  const date = paper['Published Date'] || `${paper['Published Month'] || ''} ${paper['Published Year'] || ''}`.trim();
+  const cites = parseInt(paper['Citations'], 10) || 0;
+  return `
+    <article class="pub-row">
+      <div class="pub-row-main">
+        <h3 class="pub-row-title">${esc(paper['Paper Title'] || 'Untitled Research')}</h3>
+        <div class="pub-row-meta">
+          <button type="button" class="linkish" data-open-faculty="${esc(paper['Faculty Name'] || '')}">${esc(paper['Faculty Name'] || 'Faculty')}</button>
+          ${paper['Venue / Source'] ? ` · ${esc(paper['Venue / Source'])}` : ''}
+          ${date ? ` · ${esc(date)}` : ''}
+          ${cites ? ` · ${cites} citations` : ''}
+        </div>
+        ${badges.length ? `<div class="pub-row-badges">${badges.join('')}</div>` : ''}
+      </div>
+      <div class="pub-row-doi">${doiHtml}</div>
+    </article>`;
+}
+
+function renderSectionedList(container, papers, omitEmpty) {
+  if (!container) return;
+  const groups = {};
+  BUCKETS.forEach((bucket) => { groups[bucket.id] = []; });
+  papers.forEach((paper) => {
+    const id = paperBucket(paper);
+    if (groups[id]) groups[id].push(paper);
+  });
+  const buckets = state.viewMode === 'profile' && state.profileSection !== 'all'
+    ? BUCKETS.filter((bucket) => bucket.id === state.profileSection)
+    : (state.viewMode === 'cards' && state.bucket !== 'all'
+      ? BUCKETS.filter((bucket) => bucket.id === state.bucket)
+      : BUCKETS);
+  const html = buckets.map((bucket) => {
+    const items = groups[bucket.id] || [];
+    if (omitEmpty && items.length === 0) return '';
+    const rows = items.length
+      ? items.map(renderPaperRow).join('')
+      : `<p class="section-empty">None in the current filter.</p>`;
+    return `
+      <section class="pub-section" id="section-${bucket.id}">
+        <h2 class="pub-section-title">${esc(bucket.label)} <span class="pub-section-count">${items.length}</span></h2>
+        <div class="pub-rows">${rows}</div>
+      </section>`;
+  }).join('');
+  container.innerHTML = html || `<p class="section-empty">No publications match the selected criteria.</p>`;
+}
+
+function profilePapers() {
+  const name = state.profileFaculty;
+  if (!name) return [];
+  return periodPublications.filter((paper) => {
+    const faculty = paper['Faculty Name'] || '';
+    return faculty === name || normalizeName(faculty) === normalizeName(name);
+  });
+}
+
+function renderFacultyProfile() {
+  const host = document.getElementById('facultyProfile');
+  if (!host || !state.profileFaculty) return;
+  const name = state.profileFaculty;
+  const faculty = facultyRecord(name) || {};
+  const papers = profilePapers();
+  const stats = tally(papers);
+  const photo = faculty.photo_url || '';
+  const links = [
+    ['Google Scholar', faculty['Google Scholar Profile']],
+    ['Scopus', faculty['Scopus Profile']],
+    ['ORCID', faculty['ORCID Profile']]
+  ].filter(([, url]) => profileHref(url));
+  const chips = `<button type="button" class="bucket-chip${state.profileSection === 'all' ? ' active' : ''}" data-bucket="all" data-bucket-scope="profile">All <span>${stats.total}</span></button>`
+    + BUCKETS.map((bucket) => `
+      <button type="button" class="bucket-chip${state.profileSection === bucket.id ? ' active' : ''}" data-bucket="${bucket.id}" data-bucket-scope="profile">${esc(bucket.short)} <span>${stats[bucket.id]}</span></button>
+    `).join('');
+  const sectionPapers = state.profileSection === 'all'
+    ? papers
+    : papers.filter((paper) => paperBucket(paper) === state.profileSection);
+  host.innerHTML = `
+    <div class="profile-panel-card">
+      <button type="button" class="btn-back" data-close-profile>← Back to directory</button>
+      <div class="profile-head">
+        ${photo ? `<img src="${esc(photo)}" alt="" class="profile-panel-avatar">` : ''}
+        <div>
+          <h2 class="profile-panel-name">${esc(name)}</h2>
+          <div class="profile-card-desig">${esc(faculty.Designation || '')}</div>
+          <p class="profile-panel-aoi">${esc(faculty['Area of Interest (AOI)'] || '')}</p>
+          <div class="profile-links">
+            ${links.map(([label, url]) => `<a href="${esc(profileHref(url))}" target="_blank" rel="noopener noreferrer">${esc(label)}</a>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="profile-stat-strip">
+        ${[
+          ['Q1 journals', stats.q1], ['Q2 journals', stats.q2], ['Q3 journals', stats.q3], ['Q4 journals', stats.q4],
+          ['Non-Scopus journals', stats.non_scopus_journal], ['Scopus conferences', stats.scopus_conference],
+          ['Non-Scopus conferences', stats.non_scopus_conference], ['Total journals', stats.journals],
+          ['Total conferences', stats.conferences], ['Book chapters', stats.book_chapter], ['Total', stats.total]
+        ].map(([label, value]) => `<div class="strip-stat"><span class="strip-num">${value}</span><span class="strip-lbl">${label}</span></div>`).join('')}
+      </div>
+      <div class="bucket-chips">${chips}</div>
+      <div id="profileSections"></div>
+    </div>`;
+  const previousMode = state.viewMode;
+  state.viewMode = 'profile';
+  renderSectionedList(document.getElementById('profileSections'), sectionPapers, state.profileSection === 'all');
+  state.viewMode = previousMode;
+}
+
+function openFacultyProfile(name) {
+  const resolved = resolveFacultyName(name);
+  if (!resolved) return;
+  state.profileFaculty = resolved;
+  state.profileSection = 'all';
+  const nextHash = '#faculty/' + encodeURIComponent(resolved);
+  if (location.hash !== nextHash) history.pushState(null, '', nextHash);
+  setViewMode('profile');
+  const panel = document.getElementById('facultyProfile');
+  if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function syncFromHash() {
+  const name = facultyNameFromHash();
+  if (name) {
+    if (state.profileFaculty === name && state.viewMode === 'profile') {
+      renderFacultyProfile();
+      return;
+    }
+    state.profileFaculty = name;
+    state.profileSection = 'all';
+    setViewMode('profile');
+    return;
+  }
+  if (state.viewMode === 'profile') {
+    state.profileFaculty = null;
+    setViewMode('directory');
+  }
+}
+
+function handlePortalClick(event) {
+  const sortBtn = event.target.closest('[data-sort-key]');
+  if (sortBtn) {
+    const key = sortBtn.getAttribute('data-sort-key');
+    if (state.analyticsSortKey === key) {
+      state.analyticsSortDir = state.analyticsSortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      state.analyticsSortKey = key;
+      state.analyticsSortDir = key === 'name' ? 'asc' : 'desc';
+    }
+    renderFacultyAnalytics();
+    return;
+  }
+
+  const bucketBtn = event.target.closest('[data-bucket]');
+  if (bucketBtn) {
+    const id = bucketBtn.getAttribute('data-bucket');
+    const scope = bucketBtn.getAttribute('data-bucket-scope');
+    if (scope === 'profile') {
+      state.profileSection = id;
+      renderFacultyProfile();
+    } else {
+      state.bucket = id;
+      state.currentPage = 1;
+      renderPublications();
+      renderBucketChips();
+    }
+    return;
+  }
+
+  if (event.target.closest('[data-close-profile]')) {
+    state.profileFaculty = null;
+    if (location.hash) history.pushState(null, '', location.pathname + location.search);
+    setViewMode('directory');
+    const directory = document.getElementById('facultyDirectoryContainer');
+    if (directory) directory.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+
+  const opener = event.target.closest('[data-open-faculty]');
+  if (opener && !event.target.closest('a')) {
+    openFacultyProfile(opener.getAttribute('data-open-faculty'));
   }
 }
 

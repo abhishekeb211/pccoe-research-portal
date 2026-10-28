@@ -98,11 +98,11 @@
 
       <div class="kpi-card q12">
         <div class="kpi-card-header">
-          <span class="kpi-card-title">Elite Scopus Q1/Q2</span>
+          <span class="kpi-card-title">Q1 and Q2 journals</span>
           <span class="kpi-icon-pill">💎</span>
         </div>
         <div class="kpi-number" id="kpiQ1Q2">10</div>
-        <div class="kpi-subtitle">SCImago Q1 or Q2</div>
+        <div class="kpi-subtitle">SCImago Q1 or Q2 journals</div>
       </div>
 
       <div class="kpi-card scholar">
@@ -119,9 +119,9 @@
     <section class="charts-section" aria-label="Visual Analytics">
       <div class="chart-card">
         <div class="chart-card-header">
-          <h2 class="chart-card-title">SJR Quartile & Medium Spread</h2>
+          <h2 class="chart-card-title">Journals, conferences, and book chapters</h2>
         </div>
-        <div class="chart-container">
+        <div class="chart-container tall">
           <canvas id="quartileChart"></canvas>
         </div>
       </div>
@@ -160,6 +160,16 @@
         <div class="chart-container">
           <canvas id="leaderboardChart"></canvas>
         </div>
+      </div>
+    </section>
+
+    <section class="faculty-analytics-section" aria-label="Faculty analytics">
+      <div class="chart-card wide">
+        <div class="chart-card-header">
+          <h2 class="chart-card-title">Each faculty: journals, conferences, and book chapters</h2>
+          <p class="analytics-note">Counts follow the selected period. Q4 journals do not include book chapters.</p>
+        </div>
+        <div class="analytics-scroll" id="facultyAnalytics"></div>
       </div>
     </section>
 
@@ -260,8 +270,8 @@
           <button id="resetFiltersBtn" class="btn-toggle-view" title="Reset all search and dropdown filters">
             &#8634; Reset
           </button>
-          <button id="viewCardsBtn" class="btn-toggle-view active" title="Switch to Cards View">
-            &#9638; Cards
+          <button id="viewCardsBtn" class="btn-toggle-view active" title="Group publications by type">
+            &#9638; Sections
           </button>
           <button id="viewTableBtn" class="btn-toggle-view" title="Switch to Spreadsheet Table View">
             &#9776; Table
@@ -273,8 +283,12 @@
       </div>
     </section>
 
-    <!-- PUBLICATIONS CONTAINER: CARD VIEW -->
-    <section id="cardsContainer" class="publications-card-grid" aria-label="Publications Cards"></section>
+    <div id="bucketChips" class="bucket-chips" aria-label="Publication type sections"></div>
+
+    <section id="facultyProfile" class="faculty-profile-panel" hidden></section>
+
+    <!-- PUBLICATIONS CONTAINER: SECTION VIEW -->
+    <section id="cardsContainer" class="publication-sections" aria-label="Publications by type"></section>
 
     <!-- PUBLICATIONS CONTAINER: TABLE VIEW -->
     <section id="tableContainer" class="publications-table-container" aria-label="Publications Table">
