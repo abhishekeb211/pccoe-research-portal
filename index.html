@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PCCOE Pune - Computer Engineering Research Portal & Scopus/SJR Audit (2025–Present)</title>
-  <meta name="description" content="Verified institutional research output and indexing audit for PCCOE Pune Computer Engineering Department. Features complete Scopus, SCImago (SJR) Quartiles (Q1-Q4), and Google Scholar indexing across 425 verified publications from 45 official faculty research profiles.">
+  <meta name="description" content="Identity-checked research output for the PCCOE Pune Computer Engineering department. Publications are kept only when they appear on a faculty member's own Google Scholar or ORCID profile, or when the publisher record names that author at Pimpri Chinchwad College of Engineering. Quartiles come from SCImago.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -50,19 +50,19 @@
       <div class="period-pills-row" id="periodPillsContainer">
         <button class="period-tab-btn" data-period="all">
           <span>🌟 All Publications</span>
-          <span class="period-badge-count" id="countAll">425</span>
+          <span class="period-badge-count" id="countAll">180</span>
         </button>
         <button class="period-tab-btn active" data-period="ay2526">
           <span>📅 AY 2025–2026 (July 2025 – June 2026)</span>
-          <span class="period-badge-count" id="countAY2526">255</span>
+          <span class="period-badge-count" id="countAY2526">115</span>
         </button>
         <button class="period-tab-btn" data-period="postjune26">
           <span>🚀 Recent Momentum (July – October 2026)</span>
-          <span class="period-badge-count" id="countPostJune26">56</span>
+          <span class="period-badge-count" id="countPostJune26">14</span>
         </button>
         <button class="period-tab-btn" data-period="prejuly25">
           <span>🕒 Early 2025 (Jan – June 2025)</span>
-          <span class="period-badge-count" id="countPreJuly25">114</span>
+          <span class="period-badge-count" id="countPreJuly25">51</span>
         </button>
       </div>
     </section>
@@ -74,7 +74,7 @@
           <span class="kpi-card-title">Filter Scope</span>
           <span class="kpi-icon-pill">📚</span>
         </div>
-        <div class="kpi-number" id="kpiFilteredTotal">255</div>
+        <div class="kpi-number" id="kpiFilteredTotal">115</div>
         <div class="kpi-subtitle" id="kpiScopeSubtitle">Papers in AY 2025–2026</div>
       </div>
 
@@ -83,7 +83,7 @@
           <span class="kpi-card-title">Official AY 25–26</span>
           <span class="kpi-icon-pill">📅</span>
         </div>
-        <div class="kpi-number" id="kpiAY2526">255</div>
+        <div class="kpi-number" id="kpiAY2526">115</div>
         <div class="kpi-subtitle">60.0% Institutional Cycle</div>
       </div>
 
@@ -92,8 +92,8 @@
           <span class="kpi-card-title">Post-June 2026</span>
           <span class="kpi-icon-pill">🚀</span>
         </div>
-        <div class="kpi-number" id="kpiPostJune26">56</div>
-        <div class="kpi-subtitle">Recent Q1 AY 26–27 Output</div>
+        <div class="kpi-number" id="kpiPostJune26">14</div>
+        <div class="kpi-subtitle">July–October 2026</div>
       </div>
 
       <div class="kpi-card q12">
@@ -101,8 +101,8 @@
           <span class="kpi-card-title">Elite Scopus Q1/Q2</span>
           <span class="kpi-icon-pill">💎</span>
         </div>
-        <div class="kpi-number" id="kpiQ1Q2">27</div>
-        <div class="kpi-subtitle">Top 50% Global Citation Prestige</div>
+        <div class="kpi-number" id="kpiQ1Q2">10</div>
+        <div class="kpi-subtitle">SCImago Q1 or Q2</div>
       </div>
 
       <div class="kpi-card scholar">
@@ -110,8 +110,8 @@
           <span class="kpi-card-title">Verified Indexing</span>
           <span class="kpi-icon-pill">🎓</span>
         </div>
-        <div class="kpi-number" id="kpiIndexingStatus">100%</div>
-        <div class="kpi-subtitle">Scopus & Google Scholar Only</div>
+        <div class="kpi-number" id="kpiIndexingStatus">46</div>
+        <div class="kpi-subtitle">SCImago-confirmed Scopus</div>
       </div>
     </section>
 
@@ -193,8 +193,7 @@
           <option value="Q2">Q2 (Top 25%–50%)</option>
           <option value="Q3">Q3 (Recognized)</option>
           <option value="Q4">Q4 (Standard)</option>
-          <option value="Book Chapter">Book Chapter (CRC/Springer)</option>
-          <option value="Conference Proceeding">Conference Proceeding (IEEE/Springer)</option>
+          <option value="Not Ranked">Not ranked in SCImago</option>
         </select>
 
         <!-- Author Position Filter -->
@@ -230,17 +229,17 @@
         <!-- Scopus Status Filter -->
         <select id="filterScopus" class="filter-select">
           <option value="all">Scopus Status: All</option>
-          <option value="Scopus Indexed">Scopus Active Indexed</option>
-          <option value="IEEE">IEEE Conference Proceeding</option>
-          <option value="Book Chapter">Scopus Book Citation Index</option>
+          <option value="Scopus Indexed">Scopus indexed (SCImago)</option>
+          <option value="Proceeding Unconfirmed">Proceeding, Scopus unconfirmed</option>
           <option value="Preprint">Preprint / Open Repository</option>
+          <option value="Not Indexed">Not indexed in Scopus</option>
         </select>
 
         <!-- Indexing Source Filter -->
         <select id="filterIndexSource" class="filter-select">
-          <option value="all">Index Source: All (425)</option>
-          <option value="scopus">Scopus / IEEE / Books</option>
-          <option value="scholar">Google Scholar Academic</option>
+          <option value="all">Index Source: All</option>
+          <option value="scopus">SCImago-confirmed Scopus</option>
+          <option value="scholar">On the faculty Scholar profile</option>
         </select>
 
         <!-- Sort By -->
@@ -311,11 +310,14 @@
   <!-- ==================== FOOTER ==================== -->
   <footer class="site-footer">
     <div class="footer-links">
+      <a href="https://computer.pccoepune.com/faculty-profile" target="_blank" rel="noopener noreferrer" class="footer-link">PCCOE Faculty Profiles</a>
+      <a href="https://scholar.google.com/" target="_blank" rel="noopener noreferrer" class="footer-link">Google Scholar</a>
+      <a href="https://orcid.org/" target="_blank" rel="noopener noreferrer" class="footer-link">ORCID</a>
+      <a href="https://openalex.org/" target="_blank" rel="noopener noreferrer" class="footer-link">OpenAlex</a>
+      <a href="https://www.crossref.org/" target="_blank" rel="noopener noreferrer" class="footer-link">Crossref</a>
       <a href="https://www.scopus.com/sources" target="_blank" rel="noopener noreferrer" class="footer-link">Scopus Sources</a>
-      <a href="https://www.scimagojr.com/" target="_blank" rel="noopener noreferrer" class="footer-link">SCImago Journal Rank (SJR)</a>
-      <a href="https://beallslists.com/" target="_blank" rel="noopener noreferrer" class="footer-link">Beall's Lists of Predatory Journals</a>
-      <a href="http://lod.springer.com" target="_blank" rel="noopener noreferrer" class="footer-link">Springer Linked Open Data (LOD)</a>
-      <a href="https://www.aischolar.com/news/article/how-to-verify-scopus-indexing" target="_blank" rel="noopener noreferrer" class="footer-link">AI Scholar Verification Protocol</a>
+      <a href="https://www.scimagojr.com/" target="_blank" rel="noopener noreferrer" class="footer-link">SCImago Journal Rank</a>
+      <a href="https://beallslists.com/" target="_blank" rel="noopener noreferrer" class="footer-link">Beall's List</a>
     </div>
     <p>Pimpri Chinchwad College of Engineering (PCCOE Pune) &bull; Department of Computer Engineering &bull; Autonomous Institute</p>
     <p style="margin-top: 0.5rem; font-size: 0.78rem;">Autonomous Research Verification Suite &bull; Last Audit Update: October 2026</p>

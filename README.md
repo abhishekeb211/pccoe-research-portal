@@ -1,10 +1,10 @@
 # PCCOE Pune - Computer Engineering Research Portal & Scopus/SJR Audit (2025–Present)
 
 [![GitHub Pages Deployment](https://img.shields.io/badge/Deployment-GitHub%20Pages-success?style=for-the-badge&logo=github)](https://abhishekeb211.github.io/pccoe-research-portal/)
-[![Total Publications](https://img.shields.io/badge/Verified%20Publications-425-blue?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
+[![Total Publications](https://img.shields.io/badge/Identity--checked%20Publications-180-blue?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
 [![Profile-Linked Faculty](https://img.shields.io/badge/Active%20Researchers-45%20Faculty-purple?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
 [![Photos Verified](https://img.shields.io/badge/Photo%20Coverage-100%25%20Verified-brightgreen?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
-[![Scopus Q1/Q2](https://img.shields.io/badge/Elite%20Q1%2FQ2-27%20Papers-gold?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
+[![Scopus Q1/Q2](https://img.shields.io/badge/SCImago%20Q1%2FQ2-10%20Papers-gold?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
 [![Website Verification](https://img.shields.io/badge/Source-computer.pccoepune.com-emerald?style=for-the-badge)](https://computer.pccoepune.com/faculty-profile)
 
 An executive institutional web portal, visual analytics dashboard, and academic indexing audit suite for the **Department of Computer Engineering, Pimpri Chinchwad College of Engineering (PCCOE Pune)**.
@@ -22,22 +22,19 @@ An executive institutional web portal, visual analytics dashboard, and academic 
 - **6 Faculty Members / Teaching Assistant** without profile links on the site are preserved in the Departmental Roster Directory, but have 0 publications extracted.
 - **100% Photo Coverage**: All 51 members have verified official portraits in standard 240×240 WebP/JPEG format (`images/faculty/`).
 
-### 2. Multi-Cycle Academic Period Stratification (425 Publications)
-- **AY 2025–2026** (`July 2025 – June 2026`): **255 Publications (60.0%)** — the core institutional accreditation window for NIRF, NBA, and NAAC.
-- **Post-June 2026 Momentum** (`July – October 2026`): **56 Publications (13.2%)** — recent publication momentum and early Q1 output for AY 2026–2027.
-- **Early 2025** (`January – June 2025`): **114 Publications (26.8%)** — previous academic cycle rollover.
+### 2. Academic period (180 identity-checked publications)
+- **AY 2025–2026** (`July 2025 – June 2026`): **115 publications**.
+- **Post-June 2026** (`July – October 2026`): **14 publications**.
+- **January – June 2025**: **51 publications**.
 
-### 3. Empirical Indexing Standard (100% Scopus & Google Scholar Only)
-All 425 publications are verified against international indexing databases:
-- **Scopus Sources Coverage** (`scopus.com/sources`): **369 Papers (86.8%)** across active Scopus journals, IEEE conference proceedings, and Springer/CRC book chapters.
-- **SCImago Journal Rank (SJR) Quartiles**:
-  - **Q1 Elite**: 20 papers (Top 25% worldwide prestige).
-  - **Q2 High Impact**: 7 papers (Top 25%–50%).
-  - **Q3 / Q4 Recognized**: 30 papers.
-  - **Book Chapters**: 110 chapters published with CRC Press, Springer Nature, and Wiley.
-  - **Conference Proceedings**: 118 papers in Scopus-indexed IEEE and Springer series.
-- **Google Scholar Academic Outlets**: **56 Papers (13.2%)** across peer-reviewed preprints and institutional open repositories.
-- **Zero Predatory Outlets**: All unindexed/predatory outlets completely excluded.
+### 3. Indexing, after the identity check
+Of the 180 records that can be tied to a faculty member:
+- **46** match a source in the SCImago master and are labeled Scopus-indexed. Quartiles on those rows are the SCImago values: **Q1: 3**, **Q2: 7**, **Q3: 9**, **Q4: 25**.
+- **81** are IEEE, Springer, Elsevier, or ACM proceedings whose source is not in that SCImago file. They are not labeled Scopus-indexed.
+- The rest are unconfirmed conferences, preprints, academic books, or venues with no SCImago match.
+- No remaining record is flagged on the predatory screen. 245 candidate rows were removed because they were not on the faculty member's own Scholar profile, ORCID, or a publisher affiliation naming PCCOE.
+
+The full source chain is in [`docs/INDEXING_AUDIT_METHODOLOGY.md`](docs/INDEXING_AUDIT_METHODOLOGY.md).
 
 ### 4. Five (5) Dynamic Visual Analytics (Chart.js)
 The portal features 5 interactive charts with responsive pastel styling that dynamically recalculate whenever filters change:
@@ -78,7 +75,7 @@ pccoe-research-portal/
 ├── styles.css                 # Responsive CSS design system (pure white canvas, pastel palette)
 ├── app.js                     # Client-side engine: 10 filters, 5 Chart.js instances, directory & export
 ├── data/
-│   ├── publications.json      # 425 strictly verified publications with photo_url, SJR, DOI & timestamps
+│   ├── publications.json      # 180 identity-checked publications
 │   ├── faculty.json           # 51 official faculty profiles with headshots, designations & AOI
 │   └── PCCOE_Comp_Research_Master_Audit_2025_2026.xlsx  # Re-audited master Excel workbook (202 KB)
 ├── images/

@@ -33,6 +33,18 @@ let designationChartInstance = null;
 let domainChartInstance = null;
 let leaderboardChartInstance = null;
 
+function doiHref(doi) {
+  const value = String(doi || '').trim();
+  if (!value) return '';
+  if (/^https?:\/\//i.test(value)) return value;
+  return 'https://doi.org/' + value.replace(/^doi:/i, '');
+}
+
+function scopusConfirmed(record) {
+  const status = String(record['Scopus Indexing Status'] || '').toLowerCase();
+  return status.includes('scopus indexed') && !status.includes('unconfirmed');
+}
+
 // Initialize on DOM Ready
 document.addEventListener('DOMContentLoaded', () => {
   initApp();
@@ -108,7 +120,7 @@ function populateFacultyDropdown() {
 
   names.sort((a, b) => a.localeCompare(b));
 
-  select.innerHTML = '<option value="all">Faculty Member: All 51</option>';
+  select.innerHTML = `<option value="all">Faculty Member: All ${names.length}</option>`;
   names.forEach(name => {
     const cnt = countMap[name] || 0;
     const opt = document.createElement('option');
@@ -134,6 +146,9 @@ function updatePeriodPillCounts() {
   if (countPostJune26El) countPostJune26El.textContent = counts.postjune26;
   const countPreJuly25El = document.getElementById('countPreJuly25');
   if (countPreJuly25El) countPreJuly25El.textContent = counts.prejuly25;
+
+  const indexAll = document.querySelector('#filterIndexSource option[value="all"]');
+  if (indexAll) indexAll.textContent = `Index Source: All (${counts.all})`;
 
   const kpiAYEl = document.getElementById('kpiAY2526');
   if (kpiAYEl) kpiAYEl.textContent = counts.ay2526;
@@ -332,8 +347,7 @@ function applyFilters() {
       if (state.quartile === 'Q2' && q !== 'Q2') return false;
       if (state.quartile === 'Q3' && q !== 'Q3') return false;
       if (state.quartile === 'Q4' && q !== 'Q4') return false;
-      if (state.quartile === 'Book Chapter' && q !== 'Book Chapter') return false;
-      if (state.quartile === 'Conference Proceeding' && q !== 'Conference Proceeding') return false;
+      if (state.quartile === 'Not Ranked' && (q === 'Q1' || q === 'Q2' || q === 'Q3' || q === 'Q4')) return false;
     }
 
     // 6. Position
@@ -357,18 +371,17 @@ function applyFilters() {
     // 9. Scopus Status
     if (state.scopusStatus !== 'all') {
       const sc = (p['Scopus Indexing Status'] || '').toLowerCase();
-      if (state.scopusStatus === 'Scopus Indexed' && !sc.includes('active') && !sc.includes('indexed')) return false;
-      if (state.scopusStatus === 'IEEE' && !sc.includes('ieee')) return false;
-      if (state.scopusStatus === 'Book Chapter' && !sc.includes('book')) return false;
+      if (state.scopusStatus === 'Scopus Indexed' && !scopusConfirmed(p)) return false;
+      if (state.scopusStatus === 'Proceeding Unconfirmed' && !sc.includes('unconfirmed') && !sc.includes('indexing unconfirmed')) return false;
       if (state.scopusStatus === 'Preprint' && !sc.includes('preprint')) return false;
+      if (state.scopusStatus === 'Not Indexed' && !sc.includes('not indexed') && !sc.includes('unindexed')) return false;
     }
 
-    // 10. Indexing Source Filter (Scopus vs Google Scholar)
+    // 10. Indexing source: SCImago-confirmed Scopus, or the faculty member's own Scholar profile.
     if (state.indexSource !== 'all') {
-      const sc = (p['Scopus Indexing Status'] || '');
-      const isScopus = sc.includes('Scopus') || sc.includes('IEEE') || sc.includes('Book');
-      if (state.indexSource === 'scopus' && !isScopus) return false;
-      if (state.indexSource === 'scholar' && isScopus) return false;
+      const evidence = p['Verification Evidence'] || '';
+      if (state.indexSource === 'scopus' && !scopusConfirmed(p)) return false;
+      if (state.indexSource === 'scholar' && !evidence.includes('SCHOLAR_PROFILE')) return false;
     }
 
     return true;
@@ -417,7 +430,7 @@ function updateDashboardKpis() {
   const scopeSubEl = document.getElementById('kpiScopeSubtitle');
   if (scopeSubEl) {
     const labels = {
-      all: 'All Verified Publications',
+      all: 'Identity-checked publications',
       ay2526: 'Papers in AY 2025–2026',
       postjune26: 'Post-June 2026 Momentum',
       prejuly25: 'Pre-July 2025 Output'
@@ -429,8 +442,9 @@ function updateDashboardKpis() {
   const kpiQ1Q2El = document.getElementById('kpiQ1Q2');
   if (kpiQ1Q2El) kpiQ1Q2El.textContent = q1q2Count;
 
+  const confirmed = filteredPublications.filter(scopusConfirmed).length;
   const kpiIndexingEl = document.getElementById('kpiIndexingStatus');
-  if (kpiIndexingEl) kpiIndexingEl.textContent = '100%';
+  if (kpiIndexingEl) kpiIndexingEl.textContent = String(confirmed);
 
   const showingCountEl = document.getElementById('showingCount');
   if (showingCountEl) showingCountEl.textContent = Math.min(filteredPublications.length, state.pageSize);
@@ -506,16 +520,15 @@ function renderCardView(items) {
 
     // Clean Index Source Badge
     const sc = p['Scopus Indexing Status'] || '';
-    const isScopus = sc.includes('Scopus') || sc.includes('IEEE') || sc.includes('Book');
-    const indexBadge = isScopus 
-      ? `<span class="badge badge-mint" title="${sc}">✓ Scopus &amp; IEEE</span>`
-      : `<span class="badge badge-ice" title="Google Scholar Verified Academic Venue">✓ Google Scholar</span>`;
+    const indexBadge = scopusConfirmed(p)
+      ? `<span class="badge badge-mint" title="${sc}">Scopus indexed</span>`
+      : `<span class="badge badge-ice" title="${sc || 'No SCImago source match'}">${sc ? 'Not SCImago-confirmed' : 'Unverified venue'}</span>`;
 
     const citations = parseInt(p['Citations']) || 0;
     const citeBadge = citations > 0 ? `<span class="badge badge-slate" title="Citations">🌟 ${citations} Cites</span>` : '';
 
     const doi = p['DOI'] || '';
-    const doiLink = doi ? `<a href="https://doi.org/${encodeURIComponent(doi)}" target="_blank" rel="noopener noreferrer" class="pub-link-btn">DOI &rarr;</a>` : '';
+    const doiLink = doi ? `<a href="${doiHref(doi)}" target="_blank" rel="noopener noreferrer" class="pub-link-btn">DOI &rarr;</a>` : '';
 
     const pubDate = p['Published Date'] || `${p['Published Month'] || ''} ${p['Published Year'] || ''}`;
 
@@ -575,12 +588,11 @@ function renderTableView(items) {
     else if (quart === 'Q4') qBadgeClass = 'badge-q4';
 
     const sc = p['Scopus Indexing Status'] || '';
-    const isScopus = sc.includes('Scopus') || sc.includes('IEEE') || sc.includes('Book');
-    const indexBadge = isScopus 
-      ? `<span class="badge badge-mint">Scopus</span>`
-      : `<span class="badge badge-ice">Scholar</span>`;
+    const indexBadge = scopusConfirmed(p)
+      ? `<span class="badge badge-mint">Scopus indexed</span>`
+      : `<span class="badge badge-ice">Not SCImago-confirmed</span>`;
 
-    const doi = p['DOI'] ? `<a href="https://doi.org/${encodeURIComponent(p['DOI'])}" target="_blank" rel="noopener noreferrer" style="color: var(--pastel-ice-fg); font-weight: 600;">Link</a>` : '-';
+    const doi = p['DOI'] ? `<a href="${doiHref(p['DOI'])}" target="_blank" rel="noopener noreferrer" style="color: var(--pastel-ice-fg); font-weight: 600;">Link</a>` : '-';
 
     return `
       <tr>
@@ -728,17 +740,17 @@ window.changePage = function(page) {
 
 function renderCharts() {
   // Chart 1: SJR Quartile & Medium Spread
-  const qCounts = { Q1: 0, Q2: 0, Q3: 0, Q4: 0, 'Book Chapter': 0, 'Conference Proceeding': 0, 'Google Scholar': 0 };
-  
+  const qCounts = { Q1: 0, Q2: 0, Q3: 0, Q4: 0, 'Book Chapter': 0, 'Conference Proceeding': 0, 'Not ranked': 0 };
+
   filteredPublications.forEach(p => {
     const q = p['SJR Quartile'];
     if (q === 'Q1') qCounts.Q1++;
     else if (q === 'Q2') qCounts.Q2++;
     else if (q === 'Q3') qCounts.Q3++;
     else if (q === 'Q4') qCounts.Q4++;
-    else if (q === 'Book Chapter') qCounts['Book Chapter']++;
-    else if (q === 'Conference Proceeding') qCounts['Conference Proceeding']++;
-    else qCounts['Google Scholar']++;
+    else if ((p['Publication Medium Category'] || '') === 'Book Chapter') qCounts['Book Chapter']++;
+    else if ((p['Publication Medium Category'] || '') === 'Conference Proceeding') qCounts['Conference Proceeding']++;
+    else qCounts['Not ranked']++;
   });
 
   const canvasQ = document.getElementById('quartileChart');
@@ -749,9 +761,9 @@ function renderCharts() {
     quartileChartInstance = new Chart(ctxQ, {
       type: 'doughnut',
       data: {
-        labels: ['Q1 Elite', 'Q2 Impact', 'Q3 Recognized', 'Q4 Standard', 'Book Chapters', 'IEEE Conferences', 'Google Scholar Academic'],
+        labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Book chapter (no quartile)', 'Conference (no quartile)', 'Not ranked in SCImago'],
         datasets: [{
-          data: [qCounts.Q1, qCounts.Q2, qCounts.Q3, qCounts.Q4, qCounts['Book Chapter'], qCounts['Conference Proceeding'], qCounts['Google Scholar']],
+          data: [qCounts.Q1, qCounts.Q2, qCounts.Q3, qCounts.Q4, qCounts['Book Chapter'], qCounts['Conference Proceeding'], qCounts['Not ranked']],
           backgroundColor: ['#68D391', '#63B3ED', '#F6E05E', '#CBD5E0', '#FBD38D', '#BEE3F8', '#E2E8F0'],
           borderColor: '#FFFFFF',
           borderWidth: 2
