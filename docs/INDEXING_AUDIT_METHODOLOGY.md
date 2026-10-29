@@ -5,7 +5,40 @@
 >
 > **What counts as evidence.** A record is kept only when at least one of these is true: the title is on that faculty member's own Google Scholar profile (the `user=` id published on [the departmental faculty page](https://computer.pccoepune.com/faculty-profile)), the title is on their ORCID record, or the publisher metadata for the DOI names that author with an affiliation containing Pimpri, Chinchwad, or PCCOE. A shared surname, a topic overlap, or a blank affiliation filled in as "Dept. of Computer Engineering, PCCOE Pune" is not evidence.
 >
-> **Where each field comes from.** Identity comes from the departmental roster. Self-claimed works come from the linked Google Scholar profiles and from the public ORCID API. Publisher metadata (author and affiliation) comes from OpenAlex, with Crossref used when OpenAlex has no record or no affiliation string. Quartile, SJR, H-index, ISSN, and Scopus source id come only from the local SCImago master file. Predatory screening uses Beall's journal, publisher, and hijacked-title lists plus a short list of known pay-to-publish titles. A proceeding is not labeled Scopus-indexed unless that source or its ISSN is in the SCImago file.
+> **Where each field comes from.** Identity comes from the departmental roster. Self-claimed works come from the linked Google Scholar profiles and from the public ORCID API. Publisher metadata (author and affiliation) comes from OpenAlex, with Crossref used when OpenAlex has no record or no affiliation string. On the original 180 rows, quartile, SJR, H-index, ISSN, and Scopus source id come from the local SCImago master file. A recorded Scopus source-list result replaces only the displayed quartile for that journal. The faculty claim is kept beside it. Predatory screening uses Beall's journal, publisher, and hijacked-title lists plus a short list of known pay-to-publish titles. A proceeding is not labeled Scopus-indexed unless that source or its ISSN is in the SCImago file.
+
+## Published set
+
+The file the portal serves is `web/data/publications.json`. ScholarWatch is the only writer. The root scripts that used to copy the detailed JSON into the portal are historical and must not be run to publish.
+
+The published file has **187** rows: the 180 identity-checked rows, plus seven faculty incentive rows that were not already in the set. Two incentive copies of *International Journal of Computational Vision and Robotics* papers were merged into the identity-checked rows of the same titles. The edited book *Modern Digital Approaches to Care Technologies for Individuals With Disabilities* stays a book chapter and **Not Ranked**.
+
+The portal period control is a year plus two semesters, July–December and January–June. December stays in July–December.
+
+Two rank authorities stay separate:
+
+- `scimago_2021` is the 2021 SCImago CSV. It remains the displayed quartile only where no source-list result has been recorded. The tables below are that snapshot.
+- `scopus_source_list` is a quartile already checked on Scopus Sources by applying Q1, Q2, Q3, and Q4 one at a time. The displayed quartile is the single filter that still listed the journal. `Claimed Quartile` is the faculty form and is not overwritten. A later SCImago pass does not replace this rank.
+
+Journals with a source-list result: Journal of Theoretical and Applied Information Technology (Q3), International Journal of Computational Vision and Robotics (Q2), Discover Applied Sciences (Q2), Discover Artificial Intelligence (Q1), International Journal of Computing (Q3), and Journal of Ambient Intelligence and Humanized Computing (Q1).
+
+Incentive rows carry `FACULTY_INCENTIVE_CLAIM`. Where the same paper was already identity-checked, that evidence is kept as well. The 15-day job does not log into Scopus. An Elsevier API key, if one is added later, stays in the environment or the OS keyring.
+
+The tables below are the identity-pass snapshot of the original 180 rows. They are not a recount of the 187-row published file.
+
+## PCCOE authors on one paper
+
+`PCCOE Authors` lists every departmental faculty member on the paper, in author order, as `position. Name (Main)` or `position. Name (Co-Author)`. `PCCOE Author Count` is how many of those names there are. `scholarwatch/scripts/tag_pccoe_authors.py` writes both fields. It does not add rows.
+
+A name counts as PCCOE only when its first and last significant tokens match one person on the 51-name roster. Titles such as Dr. and Prof. are ignored. A match that fits two people is skipped. The row's own `Faculty Name` is always included. Rows with an empty author list keep that one owner. No affiliation string is filled in.
+
+Main and Co-Author depend on position in `All Authors`:
+
+- A journal or book chapter: positions 1 and 2 are Main. Position 3 onward is Co-Author.
+- A conference: positions 1 to 3 are Main. Position 4 onward is Co-Author.
+- A conference of at most five authors, all of them PCCOE, marks every author Main.
+
+The department counts a paper once, and only when a PCCOE faculty member is a main author. That is **162** papers. **24** other unique papers have only PCCOE co-authors; they stay on those faculty members' co-author counts and are not a second department entry. One title stored for two faculty members with no DOI is still a single paper.
 
 ## 1. Why the previous total changed
 

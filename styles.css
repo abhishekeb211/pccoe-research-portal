@@ -1020,6 +1020,10 @@ button.faculty-profile-card {
   color: var(--text-muted);
 }
 
+.pub-row-pccoe {
+  margin-top: 0.2rem;
+}
+
 .pub-row-badges {
   display: flex;
   flex-wrap: wrap;
