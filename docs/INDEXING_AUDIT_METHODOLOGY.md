@@ -38,7 +38,7 @@ Main and Co-Author depend on position in `All Authors`:
 - A conference: positions 1 to 3 are Main. Position 4 onward is Co-Author.
 - A conference of at most five authors, all of them PCCOE, marks every author Main.
 
-The department counts a paper once, and only when a PCCOE faculty member is a main author. That is **162** papers. **24** other unique papers have only PCCOE co-authors; they stay on those faculty members' co-author counts and are not a second department entry. One title stored for two faculty members with no DOI is still a single paper.
+The department counts a paper once, and only when a PCCOE faculty member is a main author. After the publisher-affiliation check the file has **145** rows and **126** department papers. A Google Scholar title with no PCCOE affiliation for that person was removed. Papers whose only PCCOE authors are co-authors stay on those faculty members' co-author counts and are not a department entry.
 
 ## 1. Why the previous total changed
 

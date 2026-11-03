@@ -26,9 +26,7 @@ An executive institutional web portal, visual analytics dashboard, and academic 
 The period control is a year plus two semesters that do not overlap: **July–December** and **January–June**. December stays in July–December. The two most recent semesters are the quick choices. Papers with no month stay in All only.
 
 ### 3. Indexing
-The published file has **187** rows. ScholarWatch is the only writer of `data/publications.json`. That is the 180 identity-checked rows, plus seven faculty incentive rows that were not already in the set. Two duplicate *International Journal of Computational Vision and Robotics* incentive copies were merged into the identity-checked rows.
-
-A row is kept when the title is on that faculty member's Scholar profile or ORCID, or the publisher names that author with an affiliation containing Pimpri, Chinchwad, or PCCOE. Faculty incentive rows stay, and `Claimed Quartile` stays the form value.
+The published file has **145** rows. A credited faculty member stays on a paper only when that person's own publisher affiliation names Pimpri Chinchwad College of Engineering. A Google Scholar profile alone is not enough. Forty-two profile-only rows were removed because the publisher record named another college or gave no PCCOE affiliation for that person.
 
 Displayed quartile has two authorities:
 
@@ -37,7 +35,7 @@ Displayed quartile has two authorities:
 
 Source-list results: Journal of Theoretical and Applied Information Technology **Q3**, International Journal of Computational Vision and Robotics **Q2**, Discover Applied Sciences **Q2**, Discover Artificial Intelligence **Q1**, International Journal of Computing **Q3**, Journal of Ambient Intelligence and Humanized Computing **Q1**. The edited book *Modern Digital Approaches to Care Technologies for Individuals With Disabilities* stays a book chapter, **Not Ranked**.
 
-The department total counts each paper once, and only when a PCCOE faculty member is a main author. The portal shows **162** department publications. Papers where every PCCOE author is a co-author stay on that person's co-author count and are not added again to the department total.
+The department total counts each paper once, and only when a PCCOE faculty member is a main author. The portal shows **126** department publications. Papers where every PCCOE author is a co-author stay on that person's co-author count and are not added again to the department total.
 
 `PCCOE Authors` names every roster faculty member on the paper. A journal or book chapter treats the first two authors as main authors and the rest as co-authors. A conference treats the first three as main authors, unless all authors are PCCOE and there are no more than five, in which case all of them are main authors. The faculty table keeps Journal main, Journal co-author, Conference main, and Conference co-author separate from the department total.
 
