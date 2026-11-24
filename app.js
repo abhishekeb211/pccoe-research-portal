@@ -40,7 +40,8 @@ const BUCKETS = [
   { id: 'non_scopus_journal', label: 'Non-Scopus journals', short: 'Non-Scopus journals' },
   { id: 'scopus_conference', label: 'Scopus conferences', short: 'Scopus conferences' },
   { id: 'non_scopus_conference', label: 'Non-Scopus conferences', short: 'Non-Scopus conferences' },
-  { id: 'book_chapter', label: 'Book chapters', short: 'Book chapters' }
+  { id: 'book_chapter', label: 'Book chapters', short: 'Book chapters' },
+  { id: 'dataset', label: 'Datasets', short: 'Datasets' }
 ];
 
 let periodPublications = [];
@@ -77,6 +78,7 @@ function esc(value) {
 function paperBucket(record) {
   const medium = record['Publication Medium Category'] || '';
   if (medium === 'Book Chapter') return 'book_chapter';
+  if (medium === 'Dataset') return 'dataset';
   if (medium === 'Conference Proceeding') {
     return scopusConfirmed(record) ? 'scopus_conference' : 'non_scopus_conference';
   }
@@ -96,6 +98,7 @@ function emptyStats() {
     scopus_conference: 0,
     non_scopus_conference: 0,
     book_chapter: 0,
+    dataset: 0,
     journal_main: 0,
     journal_coauthor: 0,
     conference_main: 0,
@@ -109,7 +112,7 @@ function emptyStats() {
 function addTotals(stats) {
   stats.journals = stats.q1 + stats.q2 + stats.q3 + stats.q4 + stats.non_scopus_journal;
   stats.conferences = stats.scopus_conference + stats.non_scopus_conference;
-  stats.total = stats.journals + stats.conferences + stats.book_chapter;
+  stats.total = stats.journals + stats.conferences + stats.book_chapter + (stats.dataset || 0);
   return stats;
 }
 
@@ -275,6 +278,11 @@ async function initApp() {
 
     if (facRes && facRes.ok) {
       facultyList = await facRes.json();
+      const dirBtn = document.getElementById('viewDirectoryBtn');
+      if (dirBtn) {
+        dirBtn.textContent = `Faculty Directory (${facultyList.length})`;
+        dirBtn.title = `View ${facultyList.length} Faculty Directory Profiles`;
+      }
       facultyList.forEach(f => {
         const name = f.Name || f.name;
         if (name) {
@@ -1113,7 +1121,7 @@ function renderCharts() {
   }
 
   const bucketStats = tally(papers);
-  const bucketColors = ['#137333', '#1A73E8', '#B06000', '#7627BB', '#64748B', '#004D40', '#0D47A1', '#D9381E'];
+  const bucketColors = ['#137333', '#1A73E8', '#B06000', '#7627BB', '#64748B', '#004D40', '#0D47A1', '#D9381E', '#5F6368'];
   const bucketActive = BUCKETS.findIndex((bucket) => bucket.id === state.bucket);
   mountChart('quartileChart', {
     type: 'bar',
@@ -1376,7 +1384,7 @@ function statsByFaculty(papers) {
       stats[key][bucket] += 1;
       if (medium === 'Conference Proceeding') {
         stats[key][person.role === 'Main' ? 'conference_main' : 'conference_coauthor'] += 1;
-      } else if (medium !== 'Book Chapter') {
+      } else if (medium !== 'Book Chapter' && medium !== 'Dataset') {
         stats[key][person.role === 'Main' ? 'journal_main' : 'journal_coauthor'] += 1;
       }
     });
@@ -1584,7 +1592,9 @@ function renderFacultyProfile() {
   const links = [
     ['Google Scholar', faculty['Google Scholar Profile']],
     ['Scopus', faculty['Scopus Profile']],
-    ['ORCID', faculty['ORCID Profile']]
+    ['ORCID', faculty['ORCID Profile']],
+    ['Web of Science', faculty['Web of Science (WoS) / Publons']],
+    ['Website', faculty['Personal Webpage']]
   ].filter(([, url]) => profileHref(url));
   const chips = `<button type="button" class="bucket-chip${state.profileSection === 'all' ? ' active' : ''}" data-bucket="all" data-bucket-scope="profile">All <span>${stats.total}</span></button>`
     + BUCKETS.map((bucket) => `

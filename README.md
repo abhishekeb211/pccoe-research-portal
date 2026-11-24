@@ -50,7 +50,7 @@ The portal features 5 interactive charts with responsive pastel styling that dyn
 5. **Top 10 Faculty Publishing Leaderboard**: Horizontal bar chart identifying the department's top publishing faculty members.
 
 ### 5. Dedicated Faculty Directory View (51 Profiles)
-- Switch to the directory view via the **"👥 Faculty Directory (51)"** button in the controls toolbar.
+- Switch to the directory view via the **Faculty Directory** button in the controls toolbar.
 - Each profile card presents:
   - Verified portrait headshot.
   - Faculty Full Name and Canonical Designation badge.
@@ -60,7 +60,7 @@ The portal features 5 interactive charts with responsive pastel styling that dyn
 
 ### 6. Ten (10) Multi-Dimensional Filter Dimensions
 1. **Academic Period**: July of one year through June of the next, including years before 2025. Recent shows the current academic year and the one before it.
-2. **Faculty Member Dropdown**: All 51 faculty members sorted alphabetically with live paper counts.
+2. **Faculty Member Dropdown**: every roster faculty member, sorted alphabetically, with a live paper count.
 3. **Designation**: `Professor & HOD`, `Professor`, `Associate Professor`, `Assistant Professor`, `Teaching Assistant`.
 4. **SJR Quartile**: `Q1 Elite`, `Q2 Impact`, `Q3 Recognized`, `Q4 Standard`, `Book Chapter`, `Conference Proceeding`.
 5. **Author Position**: `1st Author`, `2nd Author`, `Senior / Last Author`, `Corresponding Author`.
