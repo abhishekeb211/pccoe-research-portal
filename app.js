@@ -10,7 +10,7 @@ let filteredPublications = [];
 
 // Application State
 const state = {
-  activePeriod: latestSemesterId(),
+  activePeriod: currentAcademicYearId(),
   searchQuery: '',
   faculty: 'all',
   designation: 'all',
@@ -123,35 +123,46 @@ function tally(papers) {
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-function latestSemesterId(now = new Date()) {
+function academicStartYear(now = new Date()) {
   const year = now.getFullYear();
-  return now.getMonth() >= 6 ? `jul-${year}` : `jan-${year}`;
+  return now.getMonth() >= 6 ? year : year - 1;
 }
 
-function recentSemesterIds(now = new Date()) {
-  const current = latestSemesterId(now);
-  const [half, yearText] = current.split('-');
-  const year = Number(yearText);
-  const previous = half === 'jul' ? `jan-${year}` : `jul-${year - 1}`;
-  return [current, previous];
+function academicYearId(startYear) {
+  return `ay-${startYear}`;
 }
 
-function semesterLabel(id) {
+function currentAcademicYearId(now = new Date()) {
+  return academicYearId(academicStartYear(now));
+}
+
+function recentAcademicYearIds(now = new Date()) {
+  const start = academicStartYear(now);
+  return [academicYearId(start), academicYearId(start - 1)];
+}
+
+function academicYearLabel(id) {
   if (!id || id === 'all') return 'All publications';
-  const [half, year] = id.split('-');
-  return half === 'jul' ? `July–December ${year}` : `January–June ${year}`;
+  const start = Number(String(id).slice(3));
+  if (!start) return String(id);
+  return `July ${start} – June ${start + 1}`;
 }
 
-function paperSemesterId(paper) {
+function paperAcademicYearId(paper) {
   const month = MONTH_NAMES.indexOf(paper['Published Month']);
   const year = parseInt(paper['Published Year'], 10);
   if (month < 0 || !year) return '';
-  return month >= 6 ? `jul-${year}` : `jan-${year}`;
+  return academicYearId(month >= 6 ? year : year - 1);
+}
+
+function periodLabelOf(paper) {
+  const id = paperAcademicYearId(paper);
+  return id ? academicYearLabel(id) : '';
 }
 
 function matchesPeriod(paper) {
   if (state.activePeriod === 'all') return true;
-  return paperSemesterId(paper) === state.activePeriod;
+  return paperAcademicYearId(paper) === state.activePeriod;
 }
 
 function doiLabel(doi) {
@@ -344,24 +355,38 @@ function updatePeriodPillCounts() {
 
 function renderPeriodControls() {
   const select = document.getElementById('periodYear');
-  const years = [...new Set(allPublications.map((paper) => String(paper['Published Year'] || '')).filter((year) => /^\d{4}$/.test(year)))]
-    .sort((a, b) => Number(b) - Number(a));
-  if (select && select.options.length <= 1) {
-    select.innerHTML = `<option value="recent">Recent semesters</option>${years.map((year) => `<option value="${year}">${year}</option>`).join('')}`;
+  const starts = [];
+  allPublications.forEach((paper) => {
+    const id = paperAcademicYearId(paper);
+    if (id) starts.push(Number(id.slice(3)));
+  });
+  const current = academicStartYear();
+  const min = starts.length ? Math.min(...starts) : current;
+  const max = Math.max(current, ...(starts.length ? starts : [current]));
+  const years = [];
+  for (let year = max; year >= min; year -= 1) years.push(year);
+  const recent = recentAcademicYearIds();
+  const menuValue = state.activePeriod === 'all' || recent.includes(state.activePeriod) ? 'recent' : state.activePeriod;
+  if (select) {
+    select.innerHTML = `<option value="recent">Recent academic years</option>${years.map((year) => {
+      const id = academicYearId(year);
+      return `<option value="${id}">${academicYearLabel(id)}</option>`;
+    }).join('')}`;
+    if ([...select.options].some((option) => option.value === menuValue)) select.value = menuValue;
   }
   const chosen = select ? select.value : 'recent';
-  const ids = chosen && chosen !== 'recent' ? [`jul-${chosen}`, `jan-${chosen}`] : recentSemesterIds();
+  const ids = chosen && chosen !== 'recent' ? [chosen] : recent;
   const counts = {};
   const departmentSet = departmentPapers(allPublications);
   departmentSet.forEach((paper) => {
-    const id = paperSemesterId(paper);
+    const id = paperAcademicYearId(paper);
     if (id) counts[id] = (counts[id] || 0) + 1;
   });
   const container = document.getElementById('periodPillsContainer');
   if (!container) return;
   const buttons = [
     { id: 'all', label: 'All publications', count: departmentSet.length },
-    ...ids.map((id) => ({ id, label: semesterLabel(id), count: counts[id] || 0 }))
+    ...ids.map((id) => ({ id, label: academicYearLabel(id), count: counts[id] || 0 }))
   ];
   container.innerHTML = buttons.map((button) => `
     <button type="button" class="period-tab-btn${state.activePeriod === button.id ? ' active' : ''}" data-period="${button.id}">
@@ -386,7 +411,7 @@ function setupEventListeners() {
   if (yearSelect) {
     yearSelect.addEventListener('change', () => {
       const year = yearSelect.value;
-      state.activePeriod = year === 'recent' ? latestSemesterId() : `jul-${year}`;
+      state.activePeriod = year === 'recent' ? currentAcademicYearId() : year;
       state.currentPage = 1;
       applyFilters();
     });
@@ -711,7 +736,7 @@ function renderTableView(items) {
         <td>${p['Author Position'] || '-'}</td>
         <td style="max-width: 320px; font-weight: 600;">${esc(p['Paper Title'] || '-')}</td>
         <td style="max-width: 260px;">${esc(p['Venue / Source'] || '-')}</td>
-        <td><span class="badge badge-slate">${p['Academic Period Tag'] ? p['Academic Period Tag'].split(' ')[0] : '-'}</span></td>
+        <td><span class="badge badge-slate">${esc(periodLabelOf(p) || '-')}</span></td>
         <td>${p['Published Month'] || ''} ${p['Published Year'] || ''}</td>
         <td><span class="badge ${qBadgeClass}">${quart}</span></td>
         <td>${sc || '-'}</td>
@@ -992,11 +1017,6 @@ function syncControls() {
   setSelect('filterScopus', state.scopusStatus);
   setSelect('filterIndexSource', state.indexSource);
   setSelect('filterSort', state.sortBy);
-  const yearSelect = document.getElementById('periodYear');
-  if (yearSelect) {
-    const recent = recentSemesterIds();
-    yearSelect.value = state.activePeriod === 'all' || recent.includes(state.activePeriod) ? 'recent' : state.activePeriod.split('-')[1];
-  }
   renderPeriodControls();
   document.querySelectorAll('[data-leaderboard]').forEach((button) => {
     button.classList.toggle('active', Number(button.getAttribute('data-leaderboard')) === state.leaderboardLimit);
@@ -1015,7 +1035,7 @@ function resetAll() {
   state.indexSource = 'all';
   state.sortBy = 'date-desc';
   state.bucket = 'all';
-  state.activePeriod = latestSemesterId();
+  state.activePeriod = currentAcademicYearId();
   state.analyticsSortKey = 'total';
   state.analyticsSortDir = 'desc';
   state.leaderboardLimit = 10;
@@ -1045,7 +1065,7 @@ function renderActiveFilters() {
   const add = (key, label) => {
     chips.push(`<button type="button" class="filter-chip" data-clear-filter="${esc(key)}">${esc(label)} <span aria-hidden="true">&times;</span></button>`);
   };
-  if (state.activePeriod !== 'all') add('period', semesterLabel(state.activePeriod));
+  if (state.activePeriod !== 'all') add('period', academicYearLabel(state.activePeriod));
   if (state.searchQuery) add('search', `Search: ${state.searchQuery}`);
   if (state.faculty !== 'all') add('faculty', `Faculty: ${state.faculty}`);
   if (state.designation !== 'all') add('designation', `Designation: ${state.designation}`);
@@ -1716,7 +1736,7 @@ function exportFilteredToCsv() {
 
   listedPapers().forEach(p => {
     const row = headers.map(h => {
-      let val = p[h] || '';
+      let val = h === 'Academic Period Tag' ? periodLabelOf(p) : (p[h] || '');
       return `"${String(val).replace(/"/g, '""')}"`;
     });
     csvContent += row.join(',') + '\r\n';

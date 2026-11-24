@@ -210,6 +210,11 @@ body {
   color: var(--text-secondary);
 }
 
+#periodYear {
+  width: auto;
+  min-width: 16.5rem;
+}
+
 .period-title {
   font-size: 0.75rem;
   text-transform: uppercase;

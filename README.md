@@ -1,10 +1,10 @@
 # PCCOE Pune - Computer Engineering Research Portal & Scopus/SJR Audit (2025–Present)
 
 [![GitHub Pages Deployment](https://img.shields.io/badge/Deployment-GitHub%20Pages-success?style=for-the-badge&logo=github)](https://abhishekeb211.github.io/pccoe-research-portal/)
-[![Total Publications](https://img.shields.io/badge/Published%20Publications-187-blue?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
+[![Total Publications](https://img.shields.io/badge/Published%20Publications-653-blue?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
 [![Profile-Linked Faculty](https://img.shields.io/badge/Active%20Researchers-45%20Faculty-purple?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
 [![Photos Verified](https://img.shields.io/badge/Photo%20Coverage-100%25%20Verified-brightgreen?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
-[![Scopus Q1/Q2](https://img.shields.io/badge/SCImago%20Q1%2FQ2-10%20Papers-gold?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
+[![Scopus Q1/Q2](https://img.shields.io/badge/SCImago%20Q1%2FQ2-85%20Papers-gold?style=for-the-badge)](https://abhishekeb211.github.io/pccoe-research-portal/)
 [![Website Verification](https://img.shields.io/badge/Source-computer.pccoepune.com-emerald?style=for-the-badge)](https://computer.pccoepune.com/faculty-profile)
 
 An executive institutional web portal, visual analytics dashboard, and academic indexing audit suite for the **Department of Computer Engineering, Pimpri Chinchwad College of Engineering (PCCOE Pune)**.
@@ -23,19 +23,19 @@ An executive institutional web portal, visual analytics dashboard, and academic 
 - **100% Photo Coverage**: All 51 members have verified official portraits in standard 240×240 WebP/JPEG format (`images/faculty/`).
 
 ### 2. Academic period
-The period control is a year plus two semesters that do not overlap: **July–December** and **January–June**. December stays in July–December. The two most recent semesters are the quick choices. Papers with no month stay in All only.
+The period control is an academic year that runs from July through the following June, including years before 2025. July–December 2024 and January–June 2025 are one choice: **July 2024 – June 2025**. Recent shows the current academic year and the one before it. Papers with no month stay in All only.
 
 ### 3. Indexing
-The published file has **145** rows. A credited faculty member stays on a paper only when that person's own publisher affiliation names Pimpri Chinchwad College of Engineering. A Google Scholar profile alone is not enough. Forty-two profile-only rows were removed because the publisher record named another college or gave no PCCOE affiliation for that person.
+The published file has **653** rows. A credited faculty member stays on a paper only when that person's own publisher affiliation names Pimpri Chinchwad College of Engineering. A Google Scholar profile alone is not enough. Forty-two profile-only rows were removed because the publisher record named another college or gave no PCCOE affiliation for that person.
 
 Displayed quartile has two authorities:
 
-- **`scimago_2021`** — the 2021 SCImago file, used where no Scopus source-list result is recorded. On that snapshot: **Q1: 3**, **Q2: 7**, **Q3: 9**, **Q4: 25**, with **46** rows labeled Scopus-indexed from a SCImago source id. **81** IEEE, Springer, Elsevier, or ACM proceedings whose source is not in that file stay unconfirmed.
+- **`scimago_2021`** — the 2021 SCImago file, used where no Scopus source-list result is recorded. On the current file: **Q1: 32**, **Q2: 53**, **Q3: 36**, **Q4: 82**, with **217** rows labeled Scopus Indexed (Active). **315** proceedings whose source is not in that file stay unconfirmed.
 - **`scopus_source_list`** — the quartile from Scopus Sources, checked by applying Q1, Q2, Q3, and Q4 one at a time. The filter that still lists the journal is the displayed quartile. A later SCImago pass does not replace it.
 
 Source-list results: Journal of Theoretical and Applied Information Technology **Q3**, International Journal of Computational Vision and Robotics **Q2**, Discover Applied Sciences **Q2**, Discover Artificial Intelligence **Q1**, International Journal of Computing **Q3**, Journal of Ambient Intelligence and Humanized Computing **Q1**. The edited book *Modern Digital Approaches to Care Technologies for Individuals With Disabilities* stays a book chapter, **Not Ranked**.
 
-The department total counts each paper once, and only when a PCCOE faculty member is a main author. The portal shows **126** department publications. Papers where every PCCOE author is a co-author stay on that person's co-author count and are not added again to the department total.
+The department total counts each paper once, and only when a PCCOE faculty member is a main author. The portal shows **544** department publications. Papers where every PCCOE author is a co-author stay on that person's co-author count and are not added again to the department total.
 
 `PCCOE Authors` names every roster faculty member on the paper. A journal or book chapter treats the first two authors as main authors and the rest as co-authors. A conference treats the first three as main authors, unless all authors are PCCOE and there are no more than five, in which case all of them are main authors. The faculty table keeps Journal main, Journal co-author, Conference main, and Conference co-author separate from the department total.
 
@@ -59,7 +59,7 @@ The portal features 5 interactive charts with responsive pastel styling that dyn
   - **"View All Publications &rarr;"** button: 1-click filter that switches to cards view filtered to that individual.
 
 ### 6. Ten (10) Multi-Dimensional Filter Dimensions
-1. **Academic Period**: a year, then July–December or January–June. Recent semesters are the default.
+1. **Academic Period**: July of one year through June of the next, including years before 2025. Recent shows the current academic year and the one before it.
 2. **Faculty Member Dropdown**: All 51 faculty members sorted alphabetically with live paper counts.
 3. **Designation**: `Professor & HOD`, `Professor`, `Associate Professor`, `Assistant Professor`, `Teaching Assistant`.
 4. **SJR Quartile**: `Q1 Elite`, `Q2 Impact`, `Q3 Recognized`, `Q4 Standard`, `Book Chapter`, `Conference Proceeding`.
@@ -80,9 +80,9 @@ pccoe-research-portal/
 ├── styles.css                 # Responsive CSS design system (pure white canvas, pastel palette)
 ├── app.js                     # Client-side engine: 10 filters, 5 Chart.js instances, directory & export
 ├── data/
-│   ├── publications.json      # 187 published rows; ScholarWatch is the only writer
+│   ├── publications.json      # 653 published rows; ScholarWatch is the only writer
 │   ├── faculty.json           # 51 official faculty profiles with headshots, designations & AOI
-│   └── PCCOE_Comp_Research_Master_Audit_2025_2026.xlsx  # Re-audited master Excel workbook (202 KB)
+│   └── PCCOE_Comp_Research_Master_Audit_2025_2026.xlsx  # Re-audited master Excel workbook (86 KB)
 ├── images/
 │   └── faculty/               # 51 optimized 240x240 WebP/JPEG portrait headshots
 ├── docs/
